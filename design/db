@@ -1,0 +1,42 @@
+/****************************************************************************/
+                                Table
+/****************************************************************************/
+# idTable : int --> identificador de la mesa.
++ idClient : string --> identificador del cliente que está en la mesa.
+- occupied : bool --> mesa ocupada.
+- chairs : int --> número de sillas.
+
+/****************************************************************************/
+                                Client
+/****************************************************************************/
+# idClient : string --> identificador del cliente.
+- status : int --> // 0. No está, 1. Está, 2. Ha pagado
+- appearances : int --> número de apariciones del cliente por el restaurante.
+// Datos bancarios?
+
+/****************************************************************************/
+                                Product
+/****************************************************************************/
+# idProduct : string --> identificador del producto.
+- name : string --> nombre del producto.
+- type : string --> tipo de producto.
+- description : string --> descripción del producto.
+- price : double --> precio del producto.
+
+/****************************************************************************/
+                                Orders
+/****************************************************************************/
+# idOrder : int --> identificador del pedido // ayuda a ordenar los pedidos por orden de recepción.
++ idClient : string --> identificador del cliente.
++ idProduct : string --> identificador del producto.
+- amount : int --> cantidad de productos.
+//- fecha : 
+//- status : int --> estado del pedido // 0. No atendido, 1. Atentido, 2. Servido --> local a .Bar
+
+/****************************************************************************/
+                                Historical
+/****************************************************************************/
+# idClient : string --> identificador del cliente.
+# idProduct : string --> identificador del producto.
+- times : int --> número de veces que se ha escogido un producto.
+
