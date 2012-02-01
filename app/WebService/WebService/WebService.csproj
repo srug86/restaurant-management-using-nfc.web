@@ -60,6 +60,11 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="App_LocalResources\Client.cs" />
+    <Compile Include="App_LocalResources\Object.cs" />
+    <Compile Include="App_LocalResources\Product.cs" />
+    <Compile Include="App_LocalResources\Table.cs" />
+    <Compile Include="DBProxy.cs" />
     <Compile Include="Service.asmx.cs">
       <DependentUpon>Service.asmx</DependentUpon>
       <SubType>Component</SubType>
