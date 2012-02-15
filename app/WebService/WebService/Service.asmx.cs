@@ -54,5 +54,20 @@ namespace WebService
             db.disconnect();
             return status;
         }
+
+        /*[WebService]
+        public Client getClient(string idClient)
+        {
+            Client client = new Client("null", null);
+            SqlDataReader data = db.getData("SELECT * FROM Clients WHERE idClient = '" + idClient + "'");
+            if (data != null)
+                while (data.Read())
+                {
+                    client.Id = idClient;
+                    client.Paid = true;
+                    client.Total = data.GetOrdinal("appearances");
+                }
+            return client;
+        }*/
     }
 }

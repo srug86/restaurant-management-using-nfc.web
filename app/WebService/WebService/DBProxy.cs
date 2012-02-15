@@ -45,11 +45,10 @@ namespace WebService
 
         public SqlDataReader getData(string sql)   // Sentencias de tipo SELECT
         {
-            SqlDataReader data = new SqlDataReader();
             SqlCommand command = new SqlCommand();
             command.CommandText = sql;
             command.Connection = connection;
-            data = command.ExecuteReader();
+            SqlDataReader data = command.ExecuteReader();
             return data;
         }
     }
