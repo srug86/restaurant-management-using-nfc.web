@@ -4,7 +4,7 @@ using System.Linq;
 using System.Web;
 using System.Data.SqlClient;
 
-namespace WebService
+namespace WebServices
 {
     public sealed class DBProxy
     {
@@ -19,10 +19,7 @@ namespace WebService
 
         public static DBProxy Instance
         {
-            get
-            {
-                return instance;
-            }
+            get { return instance; }
         }
 
         public void connect()
