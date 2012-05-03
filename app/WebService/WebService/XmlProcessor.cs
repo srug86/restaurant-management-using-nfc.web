@@ -32,17 +32,15 @@ namespace WebServices
             string xml = header + "\n<Orders>\n";
             if (orders.Count > 0)
             {
-                int i = 1;
                 foreach (Order order in orders)
                 {
-                    xml += "\t<Order id=\"" + i + "\">\n";
+                    xml += "\t<Order id=\"" + order.Id + "\">\n";
                     xml += "\t\t<Table>" + order.TableID + "</Table>\n";
                     xml += "\t\t<Product>" + order.Product + "</Product>\n";
                     xml += "\t\t<Amount>" + order.Amount + "</Amount>\n";
                     xml += "\t\t<Status>" + order.Status + "</Status>\n";
                     xml += "\t\t<Date>" + dateTimeToString(order.Date) + "</Date>\n";
                     xml += "\t</Order>\n";
-                    i++;
                 }
             }
             xml += "</Orders>";
@@ -55,9 +53,9 @@ namespace WebServices
             if (products.Count > 0)
                 foreach (Product product in products)
                 {
-                    xml += "\t<Product name=\"" + product.Name + "\">\n";
+                    xml += "\t<Product name=\"" + product.Name + "\" price=\"" + product.Price + "\">\n";
                     xml += "\t\t<Category>" + product.Category + "</Category>\n";
-                    xml += "\t\t<Price>" + product.Price + "</Price>\n";
+                    //xml += "\t\t<Price>" + product.Price + "</Price>\n";
                     xml += "\t\t<Description>" + product.Description + "</Description>\n";
                     xml += "\t</Product>\n";
                 }
@@ -102,18 +100,15 @@ namespace WebServices
             xml += "\t</Client>\n";
             xml += "\t<Orders>\n";
             if (orders.Count > 0)
-            {
-                int i = 1;
                 foreach (Order order in orders)
                 {
-                    xml += "\t\t<Order id=\"" + i + "\">\n";
+                    xml += "\t\t<Order id=\"" + order.Id + "\">\n";
                     xml += "\t\t\t<Product>" + order.Product + "</Product>\n";
                     xml += "\t\t\t<Amount>" + order.Amount + "</Amount>\n";
                     xml += "\t\t\t<Status>" + order.Status + "</Status>\n";
                     xml += "\t\t\t<Date>" + dateTimeToString(order.Date) + "</Date>\n";
                     xml += "\t\t</Order>\n";
                 }
-            }
             xml += "\t</Orders>\n";
             xml += "</TableInf>";
             return xml;
@@ -122,22 +117,31 @@ namespace WebServices
         /* Métodos que construyen objetos a partir de un XML */
         public static List<Order> xmlOrdersDecoder(string sXml)
         {
-            List<Order> ordersL = new List<Order>();
-            XmlDocument xml = new XmlDocument();
-            xml.LoadXml(sXml);
-            XmlNodeList orders = xml.GetElementsByTagName("Orders");
-            XmlNodeList oList = ((XmlElement)orders[0]).GetElementsByTagName("Order");
-            foreach (XmlElement order in oList)
+            List<Order> loo = new List<Order>();
+            if (sXml != "")
             {
-                Order orderO = new Order();
-                orderO.TableID = Convert.ToInt16(order.GetAttribute("Table"));
-                orderO.Product = Convert.ToString(order.GetAttribute("Product"));
-                orderO.Amount = Convert.ToInt16(order.GetAttribute("Amount"));
-                orderO.Status = Convert.ToInt16(order.GetAttribute("Status"));
-                orderO.Date = stringToDateTime(Convert.ToString(order.GetAttribute("Date")));
-                ordersL.Add(orderO);
+                XmlDocument xml = new XmlDocument();
+                xml.LoadXml(sXml);
+                XmlNodeList oders = xml.GetElementsByTagName("Orders");
+                XmlNodeList oList = ((XmlElement)oders[0]).GetElementsByTagName("Order");
+                foreach (XmlElement order in oList)
+                {
+                    Order o = new Order();
+                    o.Id = Convert.ToInt16(order.GetAttribute("id"));
+                    XmlNodeList table = ((XmlElement)order).GetElementsByTagName("Table");
+                    o.TableID = Convert.ToInt16(table[0].InnerText);
+                    XmlNodeList product = ((XmlElement)order).GetElementsByTagName("Product");
+                    o.Product = Convert.ToString(product[0].InnerText);
+                    XmlNodeList amount = ((XmlElement)order).GetElementsByTagName("Amount");
+                    o.Amount = Convert.ToInt16(amount[0].InnerText);
+                    XmlNodeList status = ((XmlElement)order).GetElementsByTagName("Status");
+                    o.Status = Convert.ToInt16(status[0].InnerText);
+                    XmlNodeList date = ((XmlElement)order).GetElementsByTagName("Date");
+                    o.Date = stringToDateTime(Convert.ToString(date[0].InnerText));
+                    loo.Add(o);
+                }
             }
-            return ordersL;
+            return loo;
         }
 
         public static List<Product> xmlProductsDecoder(string sXml)
@@ -150,10 +154,12 @@ namespace WebServices
             foreach (XmlElement product in pList)
             {
                 Product productO = new Product();
-                productO.Name = Convert.ToString(product.GetAttribute("name"));
-                productO.Category = Convert.ToString(product.GetAttribute("Category"));
-                productO.Price = Convert.ToDouble(product.GetAttribute("Price"));
-                productO.Description = Convert.ToString(product.GetAttribute("Description"));
+                productO.Name = Convert.ToString(product.GetAttribute("name")).Trim();
+                productO.Price = Convert.ToDouble(product.GetAttribute("price"));
+                XmlNodeList category = ((XmlElement)product).GetElementsByTagName("Category");
+                productO.Category = Convert.ToString(category[0].InnerText).Trim();
+                XmlNodeList description = ((XmlElement)product).GetElementsByTagName("Description");
+                productO.Description = Convert.ToString(description[0].InnerText);
                 productsL.Add(productO);
             }
             return productsL;

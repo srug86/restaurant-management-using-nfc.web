@@ -92,7 +92,7 @@ namespace WebServices
         public string setDeallocationTable(int tableID)
         {
             string client = SqlProcessor.selectTable(tableID).Client;
-            SqlProcessor.updateClient(client, 0, -2); // status (cliente) == 0 (no está); -2 en apariciones no hace nada
+            SqlProcessor.updateClient(client, 0, -3); // status (cliente) == 0 (no está); -3 en apariciones no hace nada
             SqlProcessor.updateTable(tableID, -1, "", 0); // status (mesa) == -1 (libre)
             return XmlProcessor.xmlTablesStatusBuilder(SqlProcessor.selectAllTables());
         }
@@ -101,12 +101,21 @@ namespace WebServices
         public string setDeallocationClient(string dni)
         {
             int tableID = SqlProcessor.selectTable(dni).Id;
-            SqlProcessor.updateClient(dni, 0, -2); // status (cliente) == 0 (no está); -2 en apariciones no hace nada
+            SqlProcessor.updateClient(dni, 0, -3); // status (cliente) == 0 (no está); -3 en apariciones no hace nada
             SqlProcessor.updateTable(tableID, -1, "", 0); // status (mesa) == -1 (libre)
             return XmlProcessor.xmlTablesStatusBuilder(SqlProcessor.selectAllTables());
         }
 
         /* Servicios propios de la barra */
+        [WebMethod(Description = "Genera una nueva lista de productos")]
+        public void saveProductsList(string xml)
+        {
+            List<Product> products = XmlProcessor.xmlProductsDecoder(xml);
+            if (products.Count > 0) SqlProcessor.truncateProducts();
+            foreach (Product product in products)
+                SqlProcessor.insertProduct(product);
+        }
+
         [WebMethod(Description = "Devuelve una cadena en formato XML con la lista de productos almacenada en la BBDD")]
         public string getProducts()
         {
@@ -135,29 +144,61 @@ namespace WebServices
         }
 
         [WebMethod(Description = "Añade un pedido 'order' (en formato XML) a la lista de pedidos de la BBDD")]
-        public void addNewOrder(string xml)
+        public string addNewOrder(string xml)
         {
             List<Order> orders = XmlProcessor.xmlOrdersDecoder(xml);
             foreach (Order order in orders)
                 SqlProcessor.insertOrder(order);
+            recalculateTablesStatus();
+            return XmlProcessor.xmlTablesStatusBuilder(SqlProcessor.selectAllTables());
         }
 
         [WebMethod(Description = "Cambia el estado actual del pedido 'orderID' por el nuevo estado 'status'")]
-        public void setOrderStatus(int tableID, string product, string date, int status)
+        public string setOrderStatus(int orderID, int status)
         {
-            SqlProcessor.updateOrder(tableID, product, date, -2, status); // -2 en amount no hace nada
+            SqlProcessor.updateOrder(orderID, -3, status, -3); // -3 no modifica el argumento
+            recalculateTablesStatus();
+            return XmlProcessor.xmlTablesStatusBuilder(SqlProcessor.selectAllTables());
         }
 
-        [WebMethod(Description = "Cambia el estado actual del pedido 'orderID' por el nuevo estado 'status'")]
-        public void setProductAmount(int tableID, string product, string date, int amount)
+        [WebMethod(Description = "Cambia la cantidad actual del pedido 'orderID' por la cantidad 'amount'")]
+        public void setProductAmount(int orderID, int amount)
         {
-            SqlProcessor.updateOrder(tableID, product, date, amount, -2); // -2 en status no hace nada
+            SqlProcessor.updateOrder(orderID, amount, -3, -3); // -3 no modifica el argumento
+        }
+
+        [WebMethod(Description = "Cambia la mesa actual del pedido 'orderID' por la mesa con identificador 'tableID'")]
+        public string setOrderTable(int orderID, int tableID)
+        {
+            SqlProcessor.updateOrder(orderID, -3, -3, tableID); // -3 no modifica el argumento
+            recalculateTablesStatus();
+            return XmlProcessor.xmlTablesStatusBuilder(SqlProcessor.selectAllTables());
         }
 
         [WebMethod(Description = "Devuelve el identificador (int) de la mesa que ocupa el cliente con identificador 'dni'")]
         public int getTableID(string dni)
         {
             return SqlProcessor.selectTable(dni).Id;
+        }
+
+        private void recalculateTablesStatus()
+        {
+            foreach (Table table in SqlProcessor.selectAllTables())
+            {
+                if (table.Status >= 0 && table.Status < 3)
+                {
+                    List<Order> orders = SqlProcessor.selectTableOrders(table.Id);
+                    if (orders.Count > 0)
+                    {
+                        table.Status = 2;
+                        foreach (Order order in orders)
+                            if (order.Status == 0 || order.Status == 1)
+                                table.Status = 1;
+                    }
+                    else table.Status = 0;
+                }
+                SqlProcessor.updateTable(table.Id, table.Status, "", -3);
+            }
         }
     }
 }

@@ -87,25 +87,37 @@ namespace WebServices
             return products;
         }
 
+        public static void truncateProducts()
+        {
+            db.connect();
+            db.setData("TRUNCATE TABLE Products");
+            db.disconnect();
+        }
+
         /* Acceso a la tabla de pedidos 'Orders' */
         public static void insertOrder(Order order)
         {
             db.connect();
-            db.setData("INSERT INTO Orders (tableID, product, amount, status, date) VALUES ('" +
-                order.TableID + "', '" + order.Product + "', " + order.Amount + ", " + 
+            db.setData("INSERT INTO Orders (Id, tableID, product, amount, status, date) VALUES (" +
+                order.Id + "," + order.TableID + ", '" + order.Product + "', " + order.Amount + ", " + 
                 order.Status + ", '" + toSqlDateTime(order.Date) + "')");
             db.disconnect();
         }
 
-        public static void updateOrder(int tableID, string product, string date, int amount, int status)
+        public static void updateOrder(int orderID, int amount, int status, int tableID)
         {
             db.connect();
-            if (amount != -2)   // hay actualización de cantidad
-                db.setData("UPDATE INTO Orders SET amount = " + amount + " WHERE tableID = " +
-                    tableID + ", product = '" + product + "', date = '" + date + "'");
-            if (status != -2)   // hay actualización de estado
-                db.setData("UPDATE INTO Orders SET status = " + status + " WHERE tableID = " +
-                    tableID + ", product = '" + product + "', date = '" + date + "'");
+            if (amount != -3)   // hay actualización de cantidad
+                db.setData("UPDATE Orders SET amount = " + amount + " WHERE Id = " + orderID);
+            if (status != -3)   // hay actualización de estado
+            {
+                if (status == -2)
+                    db.setData("DELETE FROM Orders WHERE Id = " + orderID);
+                else
+                    db.setData("UPDATE Orders SET status = " + status + " WHERE Id = " + orderID);
+            }
+            if (tableID != -3)
+                db.setData("UPDATE Orders SET tableID = " + tableID + " WHERE Id = " + orderID);
             db.disconnect();
         }
 
@@ -117,11 +129,12 @@ namespace WebServices
             while (data.Read())
             {
                 Order order = new Order();
-                order.TableID = data.GetInt16(0);
-                order.Product = data.GetString(1);
-                order.Amount = data.GetInt16(2);
-                order.Status = data.GetInt16(3);
-                order.Date = toDateTime(data.GetSqlDateTime(4).ToString());
+                order.Id = data.GetInt16(0);
+                order.TableID = data.GetInt16(1);
+                order.Product = data.GetString(2);
+                order.Amount = data.GetInt16(3);
+                order.Status = data.GetInt16(4);
+                order.Date = Convert.ToDateTime(data.GetSqlDateTime(5).ToString());
                 orders.Add(order);
             }
             db.disconnect();
@@ -136,11 +149,12 @@ namespace WebServices
             while (data.Read())
             {
                 Order order = new Order();
-                order.TableID = data.GetInt16(0);
-                order.Product = data.GetString(1);
-                order.Amount = data.GetInt16(2);
-                order.Status = data.GetInt16(3);
-                order.Date = toDateTime(data.GetSqlDateTime(4).ToString());
+                order.Id = data.GetInt16(0);
+                order.TableID = data.GetInt16(1);
+                order.Product = data.GetString(2);
+                order.Amount = data.GetInt16(3);
+                order.Status = data.GetInt16(4);
+                order.Date = Convert.ToDateTime(data.GetSqlDateTime(5).ToString());
                 orders.Add(order);
             }
             db.disconnect();
@@ -167,9 +181,9 @@ namespace WebServices
         public static void updateClient(string dni, int status, int appearances)
         {
             db.connect();
-            if (status != -2)
+            if (status != -3)
                 db.setData("UPDATE Clients SET status = " + status + " WHERE dni = '" + dni + "'");
-            if (appearances != -2)
+            if (appearances != -3)
                 db.setData("UPDATE Clients SET appearances = " + appearances + " WHERE dni = '" + dni + "'");
             db.disconnect();
         }
@@ -211,11 +225,11 @@ namespace WebServices
         public static void updateTable(int tableID, int status, string client, int guests)
         {
             db.connect();
-            if (status != -2)
+            if (status != -3)
                 db.setData("UPDATE Tables SET status = " + status + " WHERE Id = " + tableID);
-            if (client != "-")
+            if (client != "")
                 db.setData("UPDATE Tables SET client = '" + client + "' WHERE Id = " + tableID);
-            if (guests != -2)
+            if (guests != -3)
                 db.setData("UPDATE Tables SET guests = " + guests + " WHERE Id = " + tableID);
             db.disconnect();
         }
@@ -280,14 +294,6 @@ namespace WebServices
         }
 
         /* Operaciones auxiliares */
-        private static DateTime toDateTime(string sqlDateTime)
-        {
-            return new DateTime(Convert.ToInt16(sqlDateTime.Substring(0,4)),
-                Convert.ToInt16(sqlDateTime.Substring(5,2)), Convert.ToInt16(sqlDateTime.Substring(8,2)),
-                Convert.ToInt16(sqlDateTime.Substring(11,2)), Convert.ToInt16(sqlDateTime.Substring(14,2)), 
-                Convert.ToInt16(sqlDateTime.Substring(17,2)));
-        }
-
         private static string toSqlDateTime(DateTime date)
         {
             string month = date.Month.ToString(), day = date.Day.ToString(), hour = date.Hour.ToString(),

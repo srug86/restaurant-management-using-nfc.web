@@ -7,7 +7,13 @@ namespace WebServices.objects
 {
     class Order
     {
-        private int tableID, amount, status;
+        private int id, tableID, amount, status;
+
+        public int Id
+        {
+            get { return id; }
+            set { id = value; }
+        }
 
         public int TableID
         {
