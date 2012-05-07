@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Xml;
 using WebServices.objects;
+using System.Globalization;
 
 namespace WebServices
 {
@@ -55,7 +56,7 @@ namespace WebServices
                 {
                     xml += "\t<Product name=\"" + product.Name + "\" price=\"" + product.Price + "\">\n";
                     xml += "\t\t<Category>" + product.Category + "</Category>\n";
-                    //xml += "\t\t<Price>" + product.Price + "</Price>\n";
+                    xml += "\t\t<Price>" + product.Price + "</Price>\n";
                     xml += "\t\t<Description>" + product.Description + "</Description>\n";
                     xml += "\t</Product>\n";
                 }
@@ -114,7 +115,141 @@ namespace WebServices
             return xml;
         }
 
+        public static string xmlBillBuilder(Bill bill)
+        {
+            string xml = header + "\n<Bill>\n";
+            xml += "\t<Company name=\"" + bill.CompanyInfo.Name + "\">\n";
+            xml += "\t\t<NIF>" + bill.CompanyInfo.NIF + "</NIF>\n";
+            xml += "\t\t<Address>\n";
+            xml += "\t\t\t<Street>" + bill.CompanyAddress.Street + "</Street>\n";
+            xml += "\t\t\t<Number>" + bill.CompanyAddress.Number + "</Number>\n";
+            xml += "\t\t\t<ZipCode>" + bill.CompanyAddress.ZipCode + "</ZipCode>\n";
+            xml += "\t\t\t<Town>" + bill.CompanyAddress.Town + "</Town>\n";
+            xml += "\t\t\t<State>" + bill.CompanyAddress.State + "</State>\n";
+            xml += "\t\t</Address>\n";
+            xml += "\t\t<Contact>\n";
+            xml += "\t\t\t<Phone>" + bill.CompanyInfo.Phone + "</Phone>\n";
+            xml += "\t\t\t<Fax>" + bill.CompanyInfo.Fax + "</Fax>\n";
+            xml += "\t\t\t<Email>" + bill.CompanyInfo.Email + "</Email>\n";
+            xml += "\t\t</Contact>\n";
+            xml += "\t</Company>\n";
+            xml += "\t<Client>\n";
+            xml += "\t\t<DNI>" + bill.ClientInfo.Dni + "</DNI>\n";
+            xml += "\t\t<Name>" + bill.ClientInfo.Name + "</Name>\n";
+            xml += "\t\t<Surname>" + bill.ClientInfo.Surname + "</Surname>\n";
+            xml += "\t\t<Address>\n";
+            xml += "\t\t\t<Street>" + bill.ClientAddress.Street + "</Street>\n";
+            xml += "\t\t\t<Number>" + bill.ClientAddress.Number + "</Number>\n";
+            xml += "\t\t\t<ZipCode>" + bill.ClientAddress.ZipCode + "</ZipCode>\n";
+            xml += "\t\t\t<Town>" + bill.ClientAddress.Town + "</Town>\n";
+            xml += "\t\t\t<State>" + bill.ClientAddress.State + "</State>\n";
+            xml += "\t\t</Address>\n";
+            xml += "\t</Client>\n";
+            xml += "\t<Info>\n";
+            xml += "\t\t<Number>" + bill.Id + "</Number>\n";
+            xml += "\t\t<Serial>" + bill.Serial + "</Serial>\n";
+            xml += "\t\t<Date>" + dateTimeToString(bill.Date) + "</Date>\n";
+            xml += "\t\t<Table>" + bill.TableID + "</Table>\n";
+            xml += "\t</Info>\n";
+            xml += "\t<Orders>\n";
+            foreach (OrderPrice oPrice in bill.Orders)
+            {
+                xml += "\t\t<Order id=\"" + oPrice.Order.Id + "\">\n";
+                xml += "\t\t\t<Product>" + oPrice.Order.Product + "</Product>\n";
+                xml += "\t\t\t<Amount>" + oPrice.Order.Amount + "</Amount>\n";
+                xml += "\t\t\t<Price>" + oPrice.Price + "</Price>\n";
+                xml += "\t\t\t<IVA>" + oPrice.Iva + "</IVA>\n";
+                xml += "\t\t\t<Discount>" + oPrice.Discount + "</Discount>\n";
+                xml += "\t\t\t<Total>" + oPrice.Total + "</Total>\n";
+                xml += "\t\t</Order>\n";
+            }
+            xml += "\t</Orders>\n";
+            xml += "\t<PriceSummary>\n";
+            xml += "\t\t<TaxBase>" + bill.TaxBase + "</TaxBase>\n";
+            xml += "\t\t<IVA>" + bill.Iva + "</IVA>\n";
+            xml += "\t\t<Quote>" + bill.Quote + "</Quote>\n";
+            xml += "\t\t<Total>" + bill.Total + "</Total>\n";
+            xml += "\t</PriceSummary>\n";
+            xml += "\t<Paid>" + bill.Paid + "</Paid>\n";
+            xml += "</Bill>";
+            return xml;
+        }
+
         /* Métodos que construyen objetos a partir de un XML */
+        public static List<Object> xmlRestaurantDecoder(string sXml)
+        {
+            List<Object> objects = new List<Object>();
+            if (sXml != "")
+            {
+                Company company = new Company();
+                Address address = new Address();
+                double iva, discount = 0.0;
+                XmlDocument xml = new XmlDocument();
+                xml.LoadXml(sXml);
+                XmlNodeList restaurant = xml.GetElementsByTagName("Restaurant");
+                XmlNodeList companyD = ((XmlElement)restaurant[0]).GetElementsByTagName("Company");
+                XmlNodeList nif = ((XmlElement)companyD[0]).GetElementsByTagName("NIF");
+                company.NIF = Convert.ToString(nif[0].InnerText).Trim();
+                XmlNodeList name = ((XmlElement)companyD[0]).GetElementsByTagName("Name");
+                company.Name = Convert.ToString(name[0].InnerText).Trim();
+                XmlNodeList phone = ((XmlElement)companyD[0]).GetElementsByTagName("Phone");
+                company.Phone = Convert.ToInt32(phone[0].InnerText);
+                XmlNodeList fax = ((XmlElement)companyD[0]).GetElementsByTagName("Fax");
+                company.Fax = Convert.ToInt32(phone[0].InnerText);
+                XmlNodeList email = ((XmlElement)companyD[0]).GetElementsByTagName("Email");
+                company.Email = Convert.ToString(email[0].InnerText).Trim();
+                objects.Add(company);
+                XmlNodeList addressD = ((XmlElement)restaurant[0]).GetElementsByTagName("Address");
+                XmlNodeList street = ((XmlElement)addressD[0]).GetElementsByTagName("Street");
+                address.Street = Convert.ToString(street[0].InnerText).Trim();
+                XmlNodeList number = ((XmlElement)addressD[0]).GetElementsByTagName("Number");
+                address.Number = Convert.ToString(number[0].InnerText).Trim();
+                XmlNodeList zip = ((XmlElement)addressD[0]).GetElementsByTagName("ZipCode");
+                address.ZipCode = Convert.ToInt32(zip[0].InnerText);
+                XmlNodeList town = ((XmlElement)addressD[0]).GetElementsByTagName("Town");
+                address.Town = Convert.ToString(town[0].InnerText).Trim();
+                XmlNodeList state = ((XmlElement)addressD[0]).GetElementsByTagName("State");
+                address.State = Convert.ToString(state[0].InnerText).Trim();
+                objects.Add(address);
+                XmlNodeList rate = ((XmlElement)restaurant[0]).GetElementsByTagName("Rate");
+                iva = Convert.ToDouble(((XmlElement)rate[0]).GetAttribute("iva"));
+                objects.Add(iva);
+                discount = Convert.ToDouble(((XmlElement)rate[0]).GetAttribute("discount"));
+                objects.Add(discount);
+            }
+            return objects;
+        }
+
+        public static List<Object> xmlClientDecoder(string sXml)
+        {
+            List<Object> clientData = new List<Object>();
+            XmlDocument xml = new XmlDocument();
+            xml.LoadXml(sXml);
+            XmlNodeList cl = xml.GetElementsByTagName("Profile");
+            Client client = new Client();
+            XmlNodeList dni = ((XmlElement)cl[0]).GetElementsByTagName("DNI");
+            client.Dni = Convert.ToString(dni[0].InnerText).Trim();
+            XmlNodeList name = ((XmlElement)cl[0]).GetElementsByTagName("Name");
+            client.Name = Convert.ToString(name[0].InnerText).Trim();
+            XmlNodeList surname = ((XmlElement)cl[0]).GetElementsByTagName("Surname");
+            client.Surname = Convert.ToString(surname[0].InnerText).Trim();
+            clientData.Add(client);
+            Address address = new Address();
+            XmlNodeList addr = ((XmlElement)cl[0]).GetElementsByTagName("Address");
+            XmlNodeList street = ((XmlElement)addr[0]).GetElementsByTagName("Street");
+            address.Street = Convert.ToString(street[0].InnerText).Trim();
+            XmlNodeList number = ((XmlElement)addr[0]).GetElementsByTagName("Number");
+            address.Number = Convert.ToString(number[0].InnerText).Trim();
+            XmlNodeList zip = ((XmlElement)addr[0]).GetElementsByTagName("ZipCode");
+            address.ZipCode = Convert.ToInt32(zip[0].InnerText);
+            XmlNodeList town = ((XmlElement)addr[0]).GetElementsByTagName("Town");
+            address.Town = Convert.ToString(town[0].InnerText).Trim();
+            XmlNodeList state = ((XmlElement)addr[0]).GetElementsByTagName("State");
+            address.State = Convert.ToString(state[0].InnerText).Trim();
+            clientData.Add(address);
+            return clientData;
+        }
+
         public static List<Order> xmlOrdersDecoder(string sXml)
         {
             List<Order> loo = new List<Order>();
@@ -155,7 +290,7 @@ namespace WebServices
             {
                 Product productO = new Product();
                 productO.Name = Convert.ToString(product.GetAttribute("name")).Trim();
-                productO.Price = Convert.ToDouble(product.GetAttribute("price"));
+                productO.Price = double.Parse((String)product.GetAttribute("price"), CultureInfo.InvariantCulture);
                 XmlNodeList category = ((XmlElement)product).GetElementsByTagName("Category");
                 productO.Category = Convert.ToString(category[0].InnerText).Trim();
                 XmlNodeList description = ((XmlElement)product).GetElementsByTagName("Description");

@@ -60,6 +60,7 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="objects\Bill.cs" />
     <Compile Include="objects\Client.cs" />
     <Compile Include="objects\Product.cs" />
     <Compile Include="objects\Table.cs" />

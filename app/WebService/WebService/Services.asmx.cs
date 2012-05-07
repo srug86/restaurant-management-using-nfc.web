@@ -66,14 +66,23 @@ namespace WebServices
             SqlProcessor.deleteAnonymousClients();  // se eliminan los clientes anónimos (no usan NFC)
         }
 
+        [WebMethod(Description = "Resetea todas las tablas de la base de datos de la aplicación")]
+        public void resetDB()
+        {
+            SqlProcessor.truncateDB();
+        }
+
         /* Servicios propios del recibidor */
         [WebMethod(Description = "Devuelve el estado almacenado del cliente con id 'clientID' y lo actualiza")]
-        public int getClientStatus(string dni, string name, string surname)
+        public int getClientStatus(string xmlClient)
         {
-            Client client = SqlProcessor.selectClient(dni);
+            List<Object> clientData = XmlProcessor.xmlClientDecoder(xmlClient);
+            Client client = SqlProcessor.selectClient(((Client)clientData[0]).Dni);
             if (client.Name == null)
             {
-                SqlProcessor.insertClient(new Client(dni, name, surname, 0, 0));
+                SqlProcessor.insertClient(new Client(((Client)clientData[0]).Dni, 
+                    ((Client)clientData[0]).Name, ((Client)clientData[0]).Surname, 0, 0));
+                SqlProcessor.insertAddress(((Client)clientData[0]).Dni, (Address)clientData[1]);
                 return -1;  // indica primer acceso de un cliente
             }
             else return client.Status;
@@ -92,8 +101,7 @@ namespace WebServices
         public string setDeallocationTable(int tableID)
         {
             string client = SqlProcessor.selectTable(tableID).Client;
-            SqlProcessor.updateClient(client, 0, -3); // status (cliente) == 0 (no está); -3 en apariciones no hace nada
-            SqlProcessor.updateTable(tableID, -1, "", 0); // status (mesa) == -1 (libre)
+            setDeallocation(client, tableID);
             return XmlProcessor.xmlTablesStatusBuilder(SqlProcessor.selectAllTables());
         }
 
@@ -101,9 +109,27 @@ namespace WebServices
         public string setDeallocationClient(string dni)
         {
             int tableID = SqlProcessor.selectTable(dni).Id;
-            SqlProcessor.updateClient(dni, 0, -3); // status (cliente) == 0 (no está); -3 en apariciones no hace nada
-            SqlProcessor.updateTable(tableID, -1, "", 0); // status (mesa) == -1 (libre)
+            setDeallocation(dni, tableID);
             return XmlProcessor.xmlTablesStatusBuilder(SqlProcessor.selectAllTables());
+        }
+
+        private void setDeallocation(string client, int tableID)
+        {
+            SqlProcessor.updateClient(client, 0, -3); // status (cliente) == 0 (no está); -3 en apariciones no hace nada
+            SqlProcessor.updateTable(tableID, -1, "", 0); // status (mesa) == -1 (libre)
+            SqlProcessor.deleteTableOrders(tableID);
+        }
+
+        [WebMethod(Description = "Inicializa los datos corporativos del restaurante")]
+        public void setRestaurantInfo(string xml)
+        {
+            List<Object> info = XmlProcessor.xmlRestaurantDecoder(xml);
+            Company c = (Company)info[0];
+            Address a = (Address)info[1];
+            double iva = (Double)info[2];
+            double discount = (Double)info[3];
+            SqlProcessor.insertRestaurant(c, iva, discount);
+            SqlProcessor.insertAddress(c.NIF, a);
         }
 
         /* Servicios propios de la barra */
@@ -133,14 +159,6 @@ namespace WebServices
         {
             string dni = SqlProcessor.selectTable(tableID).Client;
             return XmlProcessor.xmlTableStatusBuilder(SqlProcessor.selectTable(tableID), SqlProcessor.selectClient(dni), SqlProcessor.selectTableOrders(tableID));
-        }
-
-        [WebMethod(Description = "Devuelve una cadena en formato XML con el estado de las mesas después de haber cobrado la factura 'bill' (también en formato XML)")]
-        public string addBillPaid(string bill)
-        {
-            string xml = "";
-            /* */
-            return xml;
         }
 
         [WebMethod(Description = "Añade un pedido 'order' (en formato XML) a la lista de pedidos de la BBDD")]
@@ -181,6 +199,31 @@ namespace WebServices
             return SqlProcessor.selectTable(dni).Id;
         }
 
+        [WebMethod(Description = "Calcula la factura de una mesa y la devuelve en formato XML")]
+        public string getBill(int tableID)
+        {
+            string xmlBill = SqlProcessor.selectBillTable(tableID);
+            if (xmlBill == "")
+            {
+                Bill bill = generateBill(tableID);
+                SqlProcessor.increaseNBill();
+                xmlBill = XmlProcessor.xmlBillBuilder(bill);
+                SqlProcessor.insertBill(bill, xmlBill);
+            }
+            return xmlBill;
+        }
+
+        [WebMethod(Description = "Marca la factura y todos sus pedidos como 'pagados' y devuelve el estado actual de las mesas")]
+        public string payBill(int billID, int type)
+        {
+            SqlProcessor.updateBillStatus(billID, type);
+            int tableID = SqlProcessor.selectTableBill(billID);
+            foreach (Order o in SqlProcessor.selectTableOrders(tableID))
+                SqlProcessor.updateOrder(o.Id, -3, 3, -3);
+            SqlProcessor.updateTable(tableID, 3, "", -3);
+            return XmlProcessor.xmlTablesStatusBuilder(SqlProcessor.selectAllTables());
+        }
+
         private void recalculateTablesStatus()
         {
             foreach (Table table in SqlProcessor.selectAllTables())
@@ -199,6 +242,37 @@ namespace WebServices
                 }
                 SqlProcessor.updateTable(table.Id, table.Status, "", -3);
             }
+        }
+
+        private Bill generateBill(int tableID)
+        {
+            Bill bill = new Bill();
+            bill.CompanyInfo = SqlProcessor.selectRestaurant();
+            bill.CompanyAddress = SqlProcessor.selectAddress(bill.CompanyInfo.NIF);
+            Table table = SqlProcessor.selectTable(tableID);
+            bill.ClientInfo = SqlProcessor.selectClient(table.Client);
+            bill.ClientAddress = SqlProcessor.selectAddress(bill.ClientInfo.Dni);
+            bill.Date = DateTime.Today;
+            bill.TableID = tableID;
+            bill.Iva = SqlProcessor.selectIVA();
+            bill.Discount = SqlProcessor.selectDiscount();
+            bill.Id = SqlProcessor.selectNBill();
+            bill.Serial = SqlProcessor.selectSerial();
+            List<Order> orders = SqlProcessor.selectTableOrders(tableID);
+            foreach (Order order in orders)
+            {
+                OrderPrice oPrice = new OrderPrice();
+                oPrice.Order = order;
+                oPrice.Price = SqlProcessor.selectProduct(order.Product).Price;
+                oPrice.Iva = bill.Iva;
+                oPrice.Discount = bill.Discount;
+                oPrice.Total = ((oPrice.Price * oPrice.Order.Amount) * (1 - (oPrice.Discount / 100))) * (1 + (oPrice.Iva / 100));
+                bill.Orders.Add(oPrice);
+                bill.Total += oPrice.Total;
+                bill.TaxBase += oPrice.Price * oPrice.Order.Amount;
+            }
+            bill.Quote = bill.Total - bill.TaxBase;
+            return bill;
         }
     }
 }

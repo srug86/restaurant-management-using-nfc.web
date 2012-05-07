@@ -64,9 +64,25 @@ namespace WebServices
         {
             db.connect();
             db.setData("INSERT INTO Products (name, category, price, description) VALUES ('" +
-                product.Name + "', '" + product.Category + "', " + product.Price + ", '" + 
+                product.Name + "', '" + product.Category + "', '" + product.Price + "', '" + 
                 product.Description + "')");
             db.disconnect();
+        }
+
+        public static Product selectProduct(string name)
+        {
+            Product product = new Product();
+            db.connect();
+            SqlDataReader data = db.getData("SELECT * FROM Products WHERE name = '" + name + "'");
+            while (data.Read())
+            {
+                product.Name = data.GetString(0);
+                product.Category = data.GetString(1);
+                product.Price = Convert.ToDouble(data.GetSqlMoney(2).ToString());
+                product.Description = data.GetString(3);
+            }
+            db.disconnect();
+            return product;
         }
 
         public static List<Product> selectAllProducts()
@@ -79,7 +95,7 @@ namespace WebServices
                 Product product = new Product();
                 product.Name = data.GetString(0);
                 product.Category = data.GetString(1);
-                product.Price = data.GetSqlMoney(2).ToDouble();
+                product.Price = Convert.ToDouble(data.GetSqlMoney(2).ToString());
                 product.Description = data.GetString(3);
                 products.Add(product);
             }
@@ -159,6 +175,13 @@ namespace WebServices
             }
             db.disconnect();
             return orders;
+        }
+
+        public static void deleteTableOrders(int tableID)
+        {
+            db.connect();
+            db.setData("DELETE FROM Orders WHERE tableID = " + tableID);
+            db.disconnect();
         }
 
         public static void truncateOrders()
@@ -293,7 +316,171 @@ namespace WebServices
             db.disconnect();
         }
 
+        /* Acceso a la tabla de facturas 'Bills' */
+        public static int selectTableBill(int billID)
+        {
+            int tableID = 0;
+            db.connect();
+            SqlDataReader data = db.getData("SELECT tableID FROM Bills WHERE Id = " + billID);
+            while (data.Read())
+                tableID = data.GetInt16(0);
+            db.disconnect();
+            return tableID;
+        }
+
+        public static string selectBillTable(int tableID)
+        {
+            string xml = "";
+            db.connect();
+            SqlDataReader data = db.getData("SELECT xml FROM Bills WHERE tableID = " + tableID + " AND paid = 0");
+            while (data.Read())
+                xml = data.GetString(0);
+            db.disconnect();
+            return xml;
+        }
+
+        public static void insertBill(Bill bill, string xml)
+        {
+            db.connect();
+            db.setData("INSERT INTO Bills (Id, tableID, client, date, total, paid, xml) VALUES (" + 
+                bill.Id + ", " + bill.TableID + ", '" + bill.ClientInfo.Dni + "', '" + bill.Date + 
+                "', '" + bill.Total + "', " + bill.Paid + ", '" + xml + "')");
+            db.disconnect();
+        }
+
+        public static void updateBillStatus(int billID, int type)
+        {
+            db.connect();
+            db.setData("UPDATE Bills SET paid = " + type + " WHERE Id = " + billID);
+            db.disconnect();
+        }
+
+        /* Acceso a la tabla de direcciones 'Address' */
+        public static void insertAddress(string nif, Address address)
+        {
+            db.connect();
+            db.setData("INSERT INTO Address (nif, street, house, zipCode, town, state) VALUES ('" +
+                nif + "', '" + address.Street + "', '" + address.Number + "', " + address.ZipCode +
+                ", '" + address.Town + "', '" + address.Street + "')");
+            db.disconnect();
+        }
+
+        public static Address selectAddress(string nif)
+        {
+            Address address = new Address();
+            db.connect();
+            SqlDataReader data = db.getData("SELECT * FROM Address WHERE nif = '" + nif + "'");
+            while (data.Read())
+            {
+                address.Street = data.GetString(1);
+                address.Number = data.GetString(2);
+                address.ZipCode = data.GetInt32(3);
+                address.Town = data.GetString(4);
+                address.State = data.GetString(5);
+            }
+            db.disconnect();
+            return address;
+        }
+
+        /* Acceso a la tabla de restaurantes 'Restaurants' */
+        public static void insertRestaurant(Company company, double iva, double discount)
+        {
+            db.connect();
+            db.setData("TRUNCATE TABLE Restaurants");
+            db.getData("INSERT INTO Restaurants (nif, name, phone, fax, mail, iva, discount, nBill, serial) VALUES ('" +
+                company.NIF + "', '" + company.Name + "', " + company.Phone + ", " + company.Fax +
+                ", '" + company.Email + "', '" + iva + "', '" + discount + "', 1, 1)");
+            db.disconnect();
+        }
+
+        public static Company selectRestaurant()
+        {
+            Company company = new Company();
+            db.connect();
+            SqlDataReader data = db.getData("SELECT * FROM Restaurants");
+            while (data.Read())
+            {
+                company.NIF = data.GetString(0);
+                company.Name = data.GetString(1);
+                company.Phone = data.GetInt32(2);
+                company.Fax = data.GetInt32(3);
+                company.Email = data.GetString(4);
+            }
+            db.disconnect();
+            return company;
+        }
+
+        public static double selectIVA()
+        {
+            double iva = 0.0;
+            db.connect();
+            SqlDataReader data = db.getData("SELECT iva FROM Restaurants");
+            while (data.Read())
+                iva = data.GetDouble(0);
+            db.disconnect();
+            return iva;
+        }
+
+        public static double selectDiscount()
+        {
+            double discount = 0.0;
+            db.connect();
+            SqlDataReader data = db.getData("SELECT discount FROM Restaurants");
+            while (data.Read())
+                discount = data.GetDouble(0);
+            db.disconnect();
+            return discount;
+        }
+
+        public static int selectNBill()
+        {
+            int nBill = 1;
+            db.connect();
+            SqlDataReader data = db.getData("SELECT nBill FROM Restaurants");
+            while (data.Read())
+                nBill = data.GetInt32(0);
+            return nBill;
+        }
+
+        public static void increaseNBill()
+        {
+            db.connect();
+            db.setData("UPDATE Restaurants SET nBill = nBill + 1");
+            db.disconnect();
+        }
+
+        public static int selectSerial()
+        {
+            int serial = 1;
+            db.connect();
+            SqlDataReader data = db.getData("SELECT serial FROM Restaurants");
+            while (data.Read())
+                serial = data.GetInt32(0);
+            return serial;
+        }
+
+        public static void increaseSerial()
+        {
+            db.connect();
+            db.setData("UPDATE Restaurants SET serial = serial + 1");
+            db.disconnect();
+        }
+
         /* Operaciones auxiliares */
+        public static void truncateDB()
+        {
+            db.connect();
+            db.setData("TRUNCATE TABLE Clients");
+            db.setData("TRUNCATE TABLE Products");
+            db.setData("TRUNCATE TABLE Orders");
+            db.setData("TRUNCATE TABLE Tables");
+            db.setData("TRUNCATE TABLE Rooms");
+            db.setData("TRUNCATE TABLE Bills");
+            db.setData("TRUNCATE TABLE Address");
+            db.setData("TRUNCATE TABLE Restaurants");
+            db.disconnect();
+        }
+
         private static string toSqlDateTime(DateTime date)
         {
             string month = date.Month.ToString(), day = date.Day.ToString(), hour = date.Hour.ToString(),
@@ -306,6 +493,5 @@ namespace WebServices
             return date.Year.ToString() + "-" + month + "-" + day + " " +
                 hour + ":" + minute + ":" + second;
         }
-
     }
 }
