@@ -27,7 +27,7 @@ namespace WebServices.objects
             set { description = value; }
         }
 
-        private double price;
+        private double price, discount;
 
         public double Price
         {
@@ -35,14 +35,39 @@ namespace WebServices.objects
             set { price = value; }
         }
 
+        public double Discount
+        {
+            get { return discount; }
+            set { discount = value; }
+        }
+
+        private bool visible;
+
+        public bool Visible
+        {
+            get { return visible; }
+            set { visible = value; }
+        }
+
+        private int discountedUnit;
+
+        public int DiscountedUnit
+        {
+            get { return discountedUnit; }
+            set { discountedUnit = value; }
+        }
+
         public Product() { }
 
-        public Product(string name, string category, string description, double price)
+        public Product(string name, string category, string description, double price,
+            bool visible, double discount, int discountedUnit)
         {
             Name = name;
             Category = category;
             Description = description;
             Price = price;
+            Visible = visible;
+            DiscountedUnit = discountedUnit;
         }
     }
 }

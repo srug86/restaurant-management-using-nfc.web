@@ -40,7 +40,7 @@ namespace WebServices
                     xml += "\t\t<Product>" + order.Product + "</Product>\n";
                     xml += "\t\t<Amount>" + order.Amount + "</Amount>\n";
                     xml += "\t\t<Status>" + order.Status + "</Status>\n";
-                    xml += "\t\t<Date>" + dateTimeToString(order.Date) + "</Date>\n";
+                    xml += "\t\t<Date>" + order.Date.ToString() + "</Date>\n";
                     xml += "\t</Order>\n";
                 }
             }
@@ -54,10 +54,13 @@ namespace WebServices
             if (products.Count > 0)
                 foreach (Product product in products)
                 {
-                    xml += "\t<Product name=\"" + product.Name + "\" price=\"" + product.Price + "\">\n";
+                    xml += "\t<Product name=\"" + product.Name + "\">\n";
                     xml += "\t\t<Category>" + product.Category + "</Category>\n";
                     xml += "\t\t<Price>" + product.Price + "</Price>\n";
                     xml += "\t\t<Description>" + product.Description + "</Description>\n";
+                    xml += "\t\t<Visible>" + product.Visible + "</Visible>\n";
+                    xml += "\t\t<Discount>" + product.Discount + "</Discount>\n";
+                    xml += "\t\t<DiscountedUnit>" + product.DiscountedUnit + "</DiscountedUnit>\n";
                     xml += "\t</Product>\n";
                 }
             xml += "</Products>";
@@ -107,11 +110,27 @@ namespace WebServices
                     xml += "\t\t\t<Product>" + order.Product + "</Product>\n";
                     xml += "\t\t\t<Amount>" + order.Amount + "</Amount>\n";
                     xml += "\t\t\t<Status>" + order.Status + "</Status>\n";
-                    xml += "\t\t\t<Date>" + dateTimeToString(order.Date) + "</Date>\n";
+                    xml += "\t\t\t<Date>" + order.Date.ToString() + "</Date>\n";
                     xml += "\t\t</Order>\n";
                 }
             xml += "\t</Orders>\n";
             xml += "</TableInf>";
+            return xml;
+        }
+
+        public static string xmlHistoryBuilder(List<HistoricalOrder> orders)
+        {
+            string xml = header + "\n<Historical>\n";
+            foreach (HistoricalOrder order in orders)
+            {
+                xml += "\t<Order>\n";
+                xml += "\t\t<Client>" + order.Client + "</Client>\n";
+                xml += "\t\t<Product>" + order.Product + "</Product>\n";
+                xml += "\t\t<Amount>" + order.Amount + "</Amount>\n";
+                xml += "\t\t<Date>" + order.Date.ToString() + "</Date>\n";
+                xml += "\t</Order>\n";
+            }
+            xml += "</Historical>";
             return xml;
         }
 
@@ -148,7 +167,7 @@ namespace WebServices
             xml += "\t<Info>\n";
             xml += "\t\t<Number>" + bill.Id + "</Number>\n";
             xml += "\t\t<Serial>" + bill.Serial + "</Serial>\n";
-            xml += "\t\t<Date>" + dateTimeToString(bill.Date) + "</Date>\n";
+            xml += "\t\t<Date>" + bill.Date.ToString() + "</Date>\n";
             xml += "\t\t<Table>" + bill.TableID + "</Table>\n";
             xml += "\t</Info>\n";
             xml += "\t<Orders>\n";
@@ -272,7 +291,7 @@ namespace WebServices
                     XmlNodeList status = ((XmlElement)order).GetElementsByTagName("Status");
                     o.Status = Convert.ToInt16(status[0].InnerText);
                     XmlNodeList date = ((XmlElement)order).GetElementsByTagName("Date");
-                    o.Date = stringToDateTime(Convert.ToString(date[0].InnerText));
+                    o.Date = Convert.ToDateTime(date[0].InnerText);
                     loo.Add(o);
                 }
             }
@@ -290,11 +309,18 @@ namespace WebServices
             {
                 Product productO = new Product();
                 productO.Name = Convert.ToString(product.GetAttribute("name")).Trim();
-                productO.Price = double.Parse((String)product.GetAttribute("price"), CultureInfo.InvariantCulture);
                 XmlNodeList category = ((XmlElement)product).GetElementsByTagName("Category");
                 productO.Category = Convert.ToString(category[0].InnerText).Trim();
+                XmlNodeList price = ((XmlElement)product).GetElementsByTagName("Price");
+                productO.Price = Convert.ToDouble(price[0].InnerText);
                 XmlNodeList description = ((XmlElement)product).GetElementsByTagName("Description");
                 productO.Description = Convert.ToString(description[0].InnerText);
+                XmlNodeList visible = ((XmlElement)product).GetElementsByTagName("Visible");
+                productO.Visible = Convert.ToBoolean(visible[0].InnerText);
+                XmlNodeList discount = ((XmlElement)product).GetElementsByTagName("Discount");
+                productO.Discount = Convert.ToDouble(discount[0].InnerText);
+                XmlNodeList discountedUnit = ((XmlElement)product).GetElementsByTagName("DiscountedUnit");
+                productO.DiscountedUnit = Convert.ToInt32(discountedUnit[0].InnerText);
                 productsL.Add(productO);
             }
             return productsL;
@@ -337,27 +363,6 @@ namespace WebServices
                 tablesDef.Add(tableDef);
             }
             return tablesDef;
-        }
-
-        private static string dateTimeToString(DateTime date)
-        {
-            string month = date.Month.ToString(), day = date.Day.ToString(), hour = date.Hour.ToString(),
-                minute = date.Minute.ToString(), second = date.Second.ToString();
-            if (date.Month < 10) month = "0" + date.Month.ToString();
-            if (date.Day < 10) day = "0" + date.Day.ToString();
-            if (date.Hour < 10) hour = "0" + date.Hour.ToString();
-            if (date.Minute < 10) minute = "0" + date.Minute.ToString();
-            if (date.Second < 10) second = "0" + date.Second.ToString();
-            return date.Year.ToString() + "-" + month + "-" + day + " " +
-                hour + ":" + minute + ":" + second;
-        }
-
-        private static DateTime stringToDateTime(string date)
-        {
-            return new DateTime(Convert.ToInt16(date.Substring(0, 4)),
-                Convert.ToInt16(date.Substring(5, 2)), Convert.ToInt16(date.Substring(8, 2)),
-                Convert.ToInt16(date.Substring(11, 2)), Convert.ToInt16(date.Substring(14, 2)),
-                Convert.ToInt16(date.Substring(17, 2)));
         }
     }
 }
