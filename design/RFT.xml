@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Recommendations>
+	<Opening></Opening>
+	<Products>
+		<Usually>
+			<Category name="">
+				<Product></Product>
+				<Times></Times>
+			</Category>
+			<Category name="">
+				<Product></Product>
+				<Times></Times>
+			</Category>
+		</Usually>
+		<Promotional>
+			<Product name="">
+				<Discount></Discount>
+				<Units></Units>
+			</Product>
+			<Product name="">
+				<Discount></Discount>
+				<Units></Units>
+			</Product>
+		</Promotional>
+		<Recommended>
+			<Product name="" category="">
+			<Product name="" category="">
+		</Recommended>
+	</Products>
+</Recommendations>
