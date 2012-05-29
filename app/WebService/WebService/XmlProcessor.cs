@@ -194,6 +194,39 @@ namespace WebServices
             return xml;
         }
 
+        public static string xmlRecommendationBuilder(Recommendation rec)
+        {
+            string xml = header + "\n<Recommendations>\n";
+            xml += "\t<Opening>" + rec.Opening + "</Opening>\n";
+            xml += "\t<Products>\n";
+            xml += "\t\t<Usually>\n";
+            foreach (RecProduct product in rec.Usually)
+            {
+                xml += "\t\t\t<Category name=\"" + product.Category + "\">\n";
+                xml += "\t\t\t\t<Product>" + product.Name + "</Product>\n";
+                xml += "\t\t\t\t<Times>" + product.Times + "</Times>\n";
+                xml += "\t\t\t</Category>\n";
+            }
+            xml += "\t\t</Usually>\n";
+            xml += "\t\t<Promotional>\n";
+            foreach (RecProduct product in rec.Promotional)
+            {
+                xml += "\t\t\t<Product name=\"" + product.Name + "\">\n";
+                xml += "\t\t\t\t<Discount>" + product.Discount + "</Discount>\n";
+                xml += "\t\t\t\t<Units>" + product.DiscountedUnit + "</Units>\n";
+                xml += "\t\t\t</Product>\n";
+            }
+            xml += "\t\t</Promotional>\n";
+            xml += "\t\t<Recommended>\n";
+            foreach (RecProduct product in rec.Recommended)
+                xml += "\t\t\t<Product name=\"" + product.Name + "\" category=\"" +
+                    product.Category + "\">\n";
+            xml += "\t\t</Recommended>\n";
+            xml += "\t</Products>\n";
+            xml += "</Recommendations>";
+            return xml;
+        }
+
         /* Métodos que construyen objetos a partir de un XML */
         public static List<Object> xmlRestaurantDecoder(string sXml)
         {
@@ -203,6 +236,7 @@ namespace WebServices
                 Company company = new Company();
                 Address address = new Address();
                 double iva, discount = 0.0;
+                int discountedVisit = 0;
                 XmlDocument xml = new XmlDocument();
                 xml.LoadXml(sXml);
                 XmlNodeList restaurant = xml.GetElementsByTagName("Restaurant");
@@ -235,6 +269,8 @@ namespace WebServices
                 objects.Add(iva);
                 discount = Convert.ToDouble(((XmlElement)rate[0]).GetAttribute("discount"));
                 objects.Add(discount);
+                discountedVisit = Convert.ToInt32(((XmlElement)rate[0]).GetAttribute("discountedVisit"));
+                objects.Add(discountedVisit);
             }
             return objects;
         }
