@@ -106,19 +106,6 @@ namespace WebServices
             else return client.Status;
         }
 
-        [WebMethod(Description = "Devuelve una cadena en formato XML con el resultado generado por el sistema recomendador para un cliente")]
-        public string getRecommendation(string client)
-        {
-            string restaurant = SqlProcessor.selectRestaurant().Name;
-            List<HistoricalOrder> clientHistory = SqlProcessor.selectHistoricalOrders(client);
-            List<Product> products = SqlProcessor.selectAllProducts(false);
-            int appearances = SqlProcessor.selectClient(client).Appearances;
-            double discount = SqlProcessor.selectDiscount();
-            int discountedV = SqlProcessor.selectDiscountedVisit();
-            Recommendation rec = Recommender.generateRecommendation(products, clientHistory, restaurant, appearances, discount, discountedV);
-            return XmlProcessor.xmlRecommendationBuilder(rec);
-        }
-
         [WebMethod(Description = "Devuelve el total de la factura para la mesa 'tableID'")]
         public double getBillAmount(int tableID)
         {
@@ -165,8 +152,7 @@ namespace WebServices
             Address a = (Address)info[1];
             double iva = (Double)info[2];
             double discount = (Double)info[3];
-            int discountedVisit = (Int32)info[4];
-            SqlProcessor.insertRestaurant(c, iva, discount, discountedVisit);
+            SqlProcessor.insertRestaurant(c, iva, discount);
             SqlProcessor.insertAddress(c.NIF, a);
         }
 
@@ -181,9 +167,9 @@ namespace WebServices
         }
 
         [WebMethod(Description = "Devuelve una cadena en formato XML con la lista de productos almacenada en la BD")]
-        public string getProducts(bool nonVisible)
+        public string getProducts()
         {
-            return XmlProcessor.xmlProductsBuilder(SqlProcessor.selectAllProducts(nonVisible));
+            return XmlProcessor.xmlProductsBuilder(SqlProcessor.selectAllProducts());
         }
 
         [WebMethod(Description = "Devuelve una cadena en formato XML con la lista de pedidos almacenados en la BD")]

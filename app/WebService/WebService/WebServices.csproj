@@ -64,13 +64,11 @@
     <Compile Include="objects\Client.cs" />
     <Compile Include="objects\HistoricalOrder.cs" />
     <Compile Include="objects\Product.cs" />
-    <Compile Include="objects\Recommendation.cs" />
-    <Compile Include="objects\RecProduct.cs" />
     <Compile Include="objects\Table.cs" />
     <Compile Include="DBProxy.cs" />
     <Compile Include="objects\Order.cs" />
     <Compile Include="objects\Room.cs" />
-    <Compile Include="Recommender.cs" />
+    <Compile Include="recommenderSystem.cs" />
     <Compile Include="Services.asmx.cs">
       <DependentUpon>Services.asmx</DependentUpon>
       <SubType>Component</SubType>
