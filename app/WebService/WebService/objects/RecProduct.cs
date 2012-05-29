@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using System.Web;
 
 namespace WebServices.objects
 {
-    class Product
+    public class RecProduct
     {
         private string name, category, description;
 
@@ -27,29 +27,13 @@ namespace WebServices.objects
             set { description = value; }
         }
 
-        private double price, discount;
+        private int times, discountedUnit;
 
-        public double Price
+        public int Times
         {
-            get { return price; }
-            set { price = value; }
+            get { return times; }
+            set { times = value; }
         }
-
-        public double Discount
-        {
-            get { return discount; }
-            set { discount = value; }
-        }
-
-        private bool visible;
-
-        public bool Visible
-        {
-            get { return visible; }
-            set { visible = value; }
-        }
-
-        private int discountedUnit;
 
         public int DiscountedUnit
         {
@@ -57,29 +41,34 @@ namespace WebServices.objects
             set { discountedUnit = value; }
         }
 
-        public Product() { }
+        private double discount;
 
-        public Product(string name)
+        public double Discount
         {
-            Name = name;
+            get { return discount; }
+            set { discount = value; }
         }
 
-        public Product(string name, string category, string description, double price,
-            bool visible, double discount, int discountedUnit)
+        public RecProduct(string name)
         {
             Name = name;
+            Category = "";
+            Discount = 0.0;
+            Times = DiscountedUnit = 0;
+        }
+
+        public RecProduct(string name, string category) {
+            Name = name;
             Category = category;
-            Description = description;
-            Price = price;
-            Visible = visible;
-            DiscountedUnit = discountedUnit;
+            Discount = 0.0;
+            Times = DiscountedUnit = 0;
         }
 
         public override bool Equals(object obj)
         {
             if (obj == null) return false;
-            if (obj.GetType() != typeof(Product)) return false;
-            Product p = (Product)obj;
+            if (obj.GetType() != typeof(RecProduct)) return false;
+            RecProduct p = (RecProduct)obj;
             return name.Equals(p.Name);
         }
     }

@@ -89,11 +89,15 @@ namespace WebServices
             return product;
         }
 
-        public static List<Product> selectAllProducts()
+        public static List<Product> selectAllProducts(bool nonVisible)
         {
             List<Product> products = new List<Product>();
             db.connect();
-            SqlDataReader data = db.getData("SELECT * FROM Products");
+            SqlDataReader data;
+            if (nonVisible)
+                data = db.getData("SELECT * FROM Products");
+            else
+                data = db.getData("SELECT * FROM Products WHERE visible = 1");
             while (data.Read())
             {
                 Product product = new Product();
@@ -400,14 +404,14 @@ namespace WebServices
         }
 
         /* Acceso a la tabla de restaurantes 'Restaurants' */
-        public static void insertRestaurant(Company company, double iva, double discount)
+        public static void insertRestaurant(Company company, double iva, double discount, int discountedVisit)
         {
             db.connect();
             db.setData("TRUNCATE TABLE Restaurants");
             db.setData("DELETE FROM Address WHERE nif = '" + company.NIF + "'");
-            db.getData("INSERT INTO Restaurants (nif, name, phone, fax, mail, iva, discount, nBill, serial) VALUES ('" +
+            db.getData("INSERT INTO Restaurants (nif, name, phone, fax, mail, iva, discount, discountedVisit, nBill, serial) VALUES ('" +
                 company.NIF + "', '" + company.Name + "', " + company.Phone + ", " + company.Fax +
-                ", '" + company.Email + "', '" + iva + "', '" + discount + "', 1, 1)");
+                ", '" + company.Email + "', '" + iva + "', '" + discount + "', " + discountedVisit + ", 1, 1)");
             db.disconnect();
         }
 
@@ -437,6 +441,17 @@ namespace WebServices
                 iva = Convert.ToDouble(data.GetString(0));
             db.disconnect();
             return iva;
+        }
+
+        public static int selectDiscountedVisit()
+        {
+            int visits = 0;
+            db.connect();
+            SqlDataReader data = db.getData("SELECT discountedVisit FROM Restaurants");
+            while (data.Read())
+                visits = data.GetInt32(0);
+            db.disconnect();
+            return visits;
         }
 
         public static double selectDiscount()
