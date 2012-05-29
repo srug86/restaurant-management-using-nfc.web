@@ -59,11 +59,6 @@ namespace WebServices.objects
 
         public Product() { }
 
-        public Product(string name)
-        {
-            Name = name;
-        }
-
         public Product(string name, string category, string description, double price,
             bool visible, double discount, int discountedUnit)
         {
@@ -73,14 +68,6 @@ namespace WebServices.objects
             Price = price;
             Visible = visible;
             DiscountedUnit = discountedUnit;
-        }
-
-        public override bool Equals(object obj)
-        {
-            if (obj == null) return false;
-            if (obj.GetType() != typeof(Product)) return false;
-            Product p = (Product)obj;
-            return name.Equals(p.Name);
         }
     }
 }
