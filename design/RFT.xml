@@ -1,30 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Recommendations>
-	<Opening></Opening>
+	<Opening>Bienvenido al restaurante Almagro. Gracias por su visita</Opening>
 	<Products>
 		<Usually>
-			<Category name="">
-				<Product></Product>
-				<Times></Times>
+			<Category name="Refrescos">
+				<Product>Coca Cola 220ml</Product>
+				<Times>5</Times>
 			</Category>
-			<Category name="">
-				<Product></Product>
-				<Times></Times>
+			<Category name="Postres">
+				<Product>Flan</Product>
+				<Times>3</Times>
 			</Category>
 		</Usually>
 		<Promotional>
-			<Product name="">
-				<Discount></Discount>
-				<Units></Units>
+			<Product name="Solomillo a la pimienta">
+				<Discount>0.5</Discount>
+				<Units>2</Units>
 			</Product>
-			<Product name="">
-				<Discount></Discount>
-				<Units></Units>
+			<Product name="Importacion">
+				<Discount>0.5</Discount>
+				<Units>2</Units>
 			</Product>
 		</Promotional>
 		<Recommended>
-			<Product name="" category="">
-			<Product name="" category="">
+			<Product name="Arroz con leche" category="Postres">
+			<Product name="Fanta de naranja 220ml" category="Refrescos">
 		</Recommended>
 	</Products>
 </Recommendations>
