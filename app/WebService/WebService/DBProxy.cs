@@ -9,7 +9,8 @@ namespace WebServices
     public sealed class DBProxy
     {
         static readonly DBProxy instance = new DBProxy();
-        const string connectionString = @"Data Source=.\SQLEXPRESS;AttachDbFilename=C:\Users\Sergio\Documents\pfc\web\app\WebService\WebService\App_Data\Database.mdf;Integrated Security=True;User Instance=True";
+        //const string connectionString = @"Data Source=.\SQLEXPRESS;AttachDbFilename=C:\Users\Sergio\Documents\pfc\web\app\WebService\WebService\App_Data\Database.mdf;Integrated Security=True;User Instance=True";
+        const string connectionString = @"Data Source=.\SQLEXPRESS;AttachDbFilename=C:\Documents and Settings\Sergio\Mis documentos\pfc\web\app\WebService\WebService\App_Data\Database.mdf;Integrated Security=True;User Instance=True";
 
         private SqlConnection connection = null;
         private SqlDataReader data = null;

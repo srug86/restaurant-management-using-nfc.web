@@ -5,7 +5,7 @@ using System.Text;
 
 namespace WebServices.objects
 {
-    class Product
+    public class Product
     {
         private string name, category, description;
 
