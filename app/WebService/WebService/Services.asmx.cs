@@ -303,8 +303,11 @@ namespace WebServices
                 oPrice.Order = order;
                 oPrice.Price = product.Price;
                 oPrice.Iva = bill.Iva;
-                oPrice.Discount = ((int)(order.Amount / product.DiscountedUnit)) * product.Discount * product.Price;
-                oPrice.Total = ((product.Price * order.Amount) * (1 - oPrice.Discount));// * (1 + (oPrice.Iva / 100));
+                if (product.DiscountedUnit > 0)
+                    oPrice.Discount = ((int)(order.Amount / product.DiscountedUnit)) * product.Discount * product.Price;
+                else
+                    oPrice.Discount = 0;
+                oPrice.Total = ((product.Price * order.Amount) * (1 - oPrice.Discount)) * (1 + (oPrice.Iva / 100));
                 bill.Orders.Add(oPrice);
                 bill.Total += oPrice.Total;
                 bill.TaxBase += oPrice.Price * order.Amount - oPrice.Discount;
