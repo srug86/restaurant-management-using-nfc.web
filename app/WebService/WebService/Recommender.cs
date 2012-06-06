@@ -25,8 +25,11 @@ namespace WebServices
             string xml = "¡Bienvenido al restaurante \"" + restaurant + "\"!\n";
             if (app == 1) xml += "Es su primera visita.\nSepa que utilizando el sistema NFC podrá disfutar de descuentos y recomendaciones personalizadas.\n";
             else xml += "Gracias por utilizar el servicio NFC.\nEs su visita número " + app + ".\n";
-            if (app % discV == 0) xml += "Dispone de un descuento final en su factura del " + disc + "%.";
-            else xml += "La factura de la visita " + ((int)(app / discV) + 1) * discV + " dispondrá de un descuento en su factura del " + disc + "%.";
+            if (discV != 0 && disc != 0.0)
+            {
+                if (app % discV == 0) xml += "Dispone de un descuento final en su factura del " + disc + "%.";
+                else xml += "La factura de la visita " + ((int)(app / discV) + 1) * discV + " dispondrá de un descuento en su factura del " + disc + "%.";
+            }
             return xml;
         }
 
@@ -64,21 +67,19 @@ namespace WebServices
                 else
                     usual[i].Times += order.Amount;
             }
-            foreach (RecProduct product in usual)
+            for (int i = 0; i < usual.Count; i++)
             {
-                int i = products.IndexOf(new Product(product.Name));
-                if (i == -1)
-                    usual.Remove(product);
+                int j = products.IndexOf(new Product(usual[i].Name));
+                if (j == -1) { usual.RemoveAt(i); i--; }
                 else
                 {
-                    if (!products[i].Visible)
-                        usual.Remove(product);
+                    if (!products[j].Visible) { usual.RemoveAt(i); i--; }
                     else
                     {
-                        product.Category = products[i].Category;
-                        product.Discount = products[i].Discount;
-                        product.DiscountedUnit = products[i].DiscountedUnit;
-                        product.Description = products[i].Description;
+                        usual[i].Category = products[j].Category;
+                        usual[i].Discount = products[j].Discount;
+                        usual[i].DiscountedUnit = products[j].DiscountedUnit;
+                        usual[i].Description = products[j].Description;
                     }
                 }
             }
@@ -114,25 +115,28 @@ namespace WebServices
             foreach (RecProduct mUP in mostUsual)
             {
                 int similarity = 0, p = -1;
-                string[] keys = mUP.Description.Split(',');
-                for (int i = 0; i < products.Count; i++)
+                if (mUP.Description != null)
                 {
-                    int auxSimil = 0;
-                    if (products[i].Category.Equals(mUP.Category) &&
-                        !products[i].Name.Equals(mUP.Name))
+                    string[] keys = mUP.Description.Split(',');
+                    for (int i = 0; i < products.Count; i++)
                     {
-                        foreach (string key in products[i].Description.Split(','))
-                            if (keys.Contains(key))
-                                auxSimil++;
-                        if (auxSimil > similarity)
+                        int auxSimil = 0;
+                        if (products[i].Category.Equals(mUP.Category) &&
+                            !products[i].Name.Equals(mUP.Name))
                         {
-                            similarity = auxSimil;
-                            p = i;
+                            foreach (string key in products[i].Description.Split(','))
+                                if (keys.Contains(key))
+                                    auxSimil++;
+                            if (auxSimil > similarity)
+                            {
+                                similarity = auxSimil;
+                                p = i;
+                            }
                         }
                     }
+                    if (p != -1)
+                        recommended.Add(new RecProduct(products[p].Name, products[p].Category));
                 }
-                if (p != -1)
-                    recommended.Add(new RecProduct(products[p].Name, products[p].Category));
             }
             return recommended;
         }
