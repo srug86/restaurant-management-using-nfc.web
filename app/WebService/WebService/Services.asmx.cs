@@ -82,6 +82,7 @@ namespace WebServices
             }
             SqlProcessor.truncateOrders();  // se eliminan todos los pedidos existentes en la BD
             SqlProcessor.deleteAnonymousClients();  // se eliminan los clientes anónimos (no usan NFC)
+            SqlProcessor.resetClientsStatus();  // se cambia el estado de los demás clientes a 0 ('no está en el restaurante')
         }
 
         [WebMethod(Description = "Resetea todas las tablas de la base de datos de la aplicación")]

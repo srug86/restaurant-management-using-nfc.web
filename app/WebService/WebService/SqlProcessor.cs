@@ -246,6 +246,13 @@ namespace WebServices
             db.disconnect();
         }
 
+        public static void resetClientsStatus()
+        {
+            db.connect();
+            db.setData("UPDATE Clients SET status = 0");
+            db.disconnect();
+        }
+
         /* Acceso a la tabla de mesas 'Tables' */
         public static void insertTable(Table table)
         {
@@ -449,7 +456,7 @@ namespace WebServices
             db.connect();
             SqlDataReader data = db.getData("SELECT discountedVisit FROM Restaurants");
             while (data.Read())
-                visits = data.GetInt32(0);
+                visits = data.GetInt16(0);
             db.disconnect();
             return visits;
         }
@@ -503,7 +510,7 @@ namespace WebServices
         public static void insertHistoricalOrder(string client, Order order)
         {
             db.connect();
-            db.setData("INSERT INTO Historical (client, product, amount, date) VALUES ('" + client + 
+            db.setData("INSERT INTO Historical (id, client, product, amount, date) VALUES (NEWID(), '" + client + 
                 "', '" + order.Product + "', " + order.Amount + ", '" + order.Date.ToString() + "')");
             db.disconnect();
         }
@@ -520,10 +527,10 @@ namespace WebServices
             while (data.Read())
             {
                 HistoricalOrder o = new HistoricalOrder();
-                o.Client = data.GetString(0).Trim();
-                o.Product = data.GetString(1).Trim();
-                o.Amount = data.GetInt32(2);
-                o.Date = Convert.ToDateTime(data.GetSqlDateTime(3).ToString());
+                o.Client = data.GetString(1).Trim();
+                o.Product = data.GetString(2).Trim();
+                o.Amount = data.GetInt32(3);
+                o.Date = Convert.ToDateTime(data.GetSqlDateTime(4).ToString());
                 orders.Add(o);
             }
             return orders;
