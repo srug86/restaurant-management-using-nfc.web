@@ -177,13 +177,14 @@ namespace WebServices
                 xml += "\t\t\t<Product>" + oPrice.Order.Product + "</Product>\n";
                 xml += "\t\t\t<Amount>" + oPrice.Order.Amount + "</Amount>\n";
                 xml += "\t\t\t<Price>" + oPrice.Price + "</Price>\n";
-                xml += "\t\t\t<IVA>" + oPrice.Iva + "</IVA>\n";
                 xml += "\t\t\t<Discount>" + oPrice.Discount + "</Discount>\n";
                 xml += "\t\t\t<Total>" + oPrice.Total + "</Total>\n";
                 xml += "\t\t</Order>\n";
             }
             xml += "\t</Orders>\n";
             xml += "\t<PriceSummary>\n";
+            xml += "\t\t<Subtotal>" + bill.Subtotal + "</Subtotal>\n";
+            xml += "\t\t<Discount>" + bill.Discount + "</Discount>\n";
             xml += "\t\t<TaxBase>" + bill.TaxBase + "</TaxBase>\n";
             xml += "\t\t<IVA>" + bill.Iva + "</IVA>\n";
             xml += "\t\t<Quote>" + bill.Quote + "</Quote>\n";
