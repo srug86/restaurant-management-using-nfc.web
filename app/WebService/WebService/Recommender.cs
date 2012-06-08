@@ -22,13 +22,13 @@ namespace WebServices
 
         private static string generateOpening(string restaurant, int app, double disc, int discV)
         {
-            string xml = "¡Bienvenido al restaurante \"" + restaurant + "\"!\n";
-            if (app == 1) xml += "Es su primera visita.\nSepa que utilizando el sistema NFC podrá disfutar de descuentos y recomendaciones personalizadas.\n";
-            else xml += "Gracias por utilizar el servicio NFC.\nEs su visita número " + app + ".\n";
+            string xml = "Bienvenido al restaurante \"" + restaurant + "\"\n";
+            if (app == 0) xml += "Es su primera visita.\nSepa que utilizando el sistema NFC podra disfutar de descuentos y recomendaciones personalizadas.\n";
+            else xml += "Gracias por utilizar el servicio NFC.\nEs su visita numero " + (app + 1) + ".\n";
             if (discV != 0 && disc != 0.0)
             {
                 if (app % discV == 0) xml += "Dispone de un descuento final en su factura del " + disc + "%.";
-                else xml += "La factura de la visita " + ((int)(app / discV) + 1) * discV + " dispondrá de un descuento en su factura del " + disc + "%.";
+                else xml += "La factura de la visita " + ((int)(app / discV) + 1) * discV + " dispondra de un descuento en su factura del " + disc + "%.";
             }
             return xml;
         }

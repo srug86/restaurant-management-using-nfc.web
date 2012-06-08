@@ -71,7 +71,7 @@ namespace WebServices.objects
             set { date = value; }
         }
 
-        private double iva, discount, taxBase, quote, total;
+        private double iva, discount, taxBase, quote, subtotal, total;
 
         public double Iva
         {
@@ -97,6 +97,12 @@ namespace WebServices.objects
             set { quote = value; }
         }
 
+        public double Subtotal
+        {
+            get { return subtotal; }
+            set { subtotal = value; }
+        }
+
         public double Total
         {
             get { return total; }
@@ -113,8 +119,7 @@ namespace WebServices.objects
 
         public Bill() {
             Paid = 0;
-            TaxBase = 0;
-            Total = 0;
+            TaxBase = Total = Subtotal = Quote = 0;
             Orders = new List<OrderPrice>();
         }
     }
@@ -207,18 +212,12 @@ namespace WebServices.objects
           set { order = value; }
         }
 
-        private double price, iva, discount, total;
+        private double price, discount, total;
 
         public double Price
         {
           get { return price; }
           set { price = value; }
-        }
-
-        public double Iva
-        {
-          get { return iva; }
-          set { iva = value; }
         }
 
         public double Discount

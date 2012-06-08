@@ -130,7 +130,7 @@ namespace WebServices
         public string setAllocationTable(string dni, int tableID, int guests)
         {
             int appearances = SqlProcessor.selectClient(dni).Appearances;
-            SqlProcessor.updateClient(dni, 1, appearances++); // status (cliente) == 1 (sentado)
+            SqlProcessor.updateClient(dni, 1, ++appearances); // status (cliente) == 1 (sentado)
             SqlProcessor.updateTable(tableID, 0, dni, guests); // status (mesa) == 0 (ocupada)
             return XmlProcessor.xmlTablesStatusBuilder(SqlProcessor.selectAllTables());
         }
@@ -303,16 +303,16 @@ namespace WebServices
                 Product product = SqlProcessor.selectProduct(order.Product);
                 oPrice.Order = order;
                 oPrice.Price = product.Price;
-                oPrice.Iva = bill.Iva;
                 if (product.DiscountedUnit > 0)
                     oPrice.Discount = ((int)(order.Amount / product.DiscountedUnit)) * product.Discount * product.Price;
                 else
                     oPrice.Discount = 0;
-                oPrice.Total = ((product.Price * order.Amount) * (1 - oPrice.Discount)) * (1 + (oPrice.Iva / 100));
+                oPrice.Total = ((product.Price * order.Amount) * (1 - oPrice.Discount));
                 bill.Orders.Add(oPrice);
-                bill.Total += oPrice.Total;
-                bill.TaxBase += oPrice.Price * order.Amount - oPrice.Discount;
+                bill.Subtotal += oPrice.Total;
             }
+            bill.TaxBase = bill.Subtotal - bill.Subtotal * (bill.Discount / 100);
+            bill.Total = bill.TaxBase + bill.TaxBase * (bill.Iva / 100);
             bill.Quote = bill.Total - bill.TaxBase;
             return bill;
         }
