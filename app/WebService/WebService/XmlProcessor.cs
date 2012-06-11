@@ -134,45 +134,42 @@ namespace WebServices
             return xml;
         }
 
-        public static string xmlBillBuilder(Bill bill, bool _short)
+        public static string xmlBillBuilder(Bill bill)
         {
             string xml = header + "\n<Bill>\n";
             xml += "\t<Company name=\"" + bill.CompanyInfo.Name + "\">\n";
-            if (!_short)
-            {
-                xml += "\t\t<NIF>" + bill.CompanyInfo.NIF + "</NIF>\n";
-                xml += "\t\t<Address>\n";
-                xml += "\t\t\t<Street>" + bill.CompanyAddress.Street + "</Street>\n";
-                xml += "\t\t\t<Number>" + bill.CompanyAddress.Number + "</Number>\n";
-                xml += "\t\t\t<ZipCode>" + bill.CompanyAddress.ZipCode + "</ZipCode>\n";
-                xml += "\t\t\t<Town>" + bill.CompanyAddress.Town + "</Town>\n";
-                xml += "\t\t\t<State>" + bill.CompanyAddress.State + "</State>\n";
-                xml += "\t\t</Address>\n";
-                xml += "\t\t<Contact>\n";
-                xml += "\t\t\t<Phone>" + bill.CompanyInfo.Phone + "</Phone>\n";
-                xml += "\t\t\t<Fax>" + bill.CompanyInfo.Fax + "</Fax>\n";
-                xml += "\t\t\t<Email>" + bill.CompanyInfo.Email + "</Email>\n";
-                xml += "\t\t</Contact>\n";
-                xml += "\t</Company>\n";
-                xml += "\t<Client>\n";
-                xml += "\t\t<DNI>" + bill.ClientInfo.Dni + "</DNI>\n";
-                xml += "\t\t<Name>" + bill.ClientInfo.Name + "</Name>\n";
-                xml += "\t\t<Surname>" + bill.ClientInfo.Surname + "</Surname>\n";
-                xml += "\t\t<Address>\n";
-                xml += "\t\t\t<Street>" + bill.ClientAddress.Street + "</Street>\n";
-                xml += "\t\t\t<Number>" + bill.ClientAddress.Number + "</Number>\n";
-                xml += "\t\t\t<ZipCode>" + bill.ClientAddress.ZipCode + "</ZipCode>\n";
-                xml += "\t\t\t<Town>" + bill.ClientAddress.Town + "</Town>\n";
-                xml += "\t\t\t<State>" + bill.ClientAddress.State + "</State>\n";
-                xml += "\t\t</Address>\n";
-                xml += "\t</Client>\n";
-                xml += "\t<Info>\n";
-                xml += "\t\t<Number>" + bill.Id + "</Number>\n";
-                xml += "\t\t<Serial>" + bill.Serial + "</Serial>\n";
-            }
+            xml += "\t\t<NIF>" + bill.CompanyInfo.NIF + "</NIF>\n";
+            xml += "\t\t<Address>\n";
+            xml += "\t\t\t<Street>" + bill.CompanyAddress.Street + "</Street>\n";
+            xml += "\t\t\t<Number>" + bill.CompanyAddress.Number + "</Number>\n";
+            xml += "\t\t\t<ZipCode>" + bill.CompanyAddress.ZipCode + "</ZipCode>\n";
+            xml += "\t\t\t<Town>" + bill.CompanyAddress.Town + "</Town>\n";
+            xml += "\t\t\t<State>" + bill.CompanyAddress.State + "</State>\n";
+            xml += "\t\t</Address>\n";
+            xml += "\t\t<Contact>\n";
+            xml += "\t\t\t<Phone>" + bill.CompanyInfo.Phone + "</Phone>\n";
+            xml += "\t\t\t<Fax>" + bill.CompanyInfo.Fax + "</Fax>\n";
+            xml += "\t\t\t<Email>" + bill.CompanyInfo.Email + "</Email>\n";
+            xml += "\t\t</Contact>\n";
+            xml += "\t</Company>\n";
+            xml += "\t<Client>\n";
+            xml += "\t\t<DNI>" + bill.ClientInfo.Dni + "</DNI>\n";
+            xml += "\t\t<Name>" + bill.ClientInfo.Name + "</Name>\n";
+            xml += "\t\t<Surname>" + bill.ClientInfo.Surname + "</Surname>\n";
+            xml += "\t\t<Address>\n";
+            xml += "\t\t\t<Street>" + bill.ClientAddress.Street + "</Street>\n";
+            xml += "\t\t\t<Number>" + bill.ClientAddress.Number + "</Number>\n";
+            xml += "\t\t\t<ZipCode>" + bill.ClientAddress.ZipCode + "</ZipCode>\n";
+            xml += "\t\t\t<Town>" + bill.ClientAddress.Town + "</Town>\n";
+            xml += "\t\t\t<State>" + bill.ClientAddress.State + "</State>\n";
+            xml += "\t\t</Address>\n";
+            xml += "\t</Client>\n";
+            xml += "\t<Info>\n";
+            xml += "\t\t<Number>" + bill.Id + "</Number>\n";
+            xml += "\t\t<Serial>" + bill.Serial + "</Serial>\n";
             xml += "\t\t<Date>" + bill.Date.ToString() + "</Date>\n";
             xml += "\t\t<Table>" + bill.TableID + "</Table>\n";
-            if (!_short) xml += "\t</Info>\n";
+            xml += "\t</Info>\n";
             xml += "\t<Orders>\n";
             foreach (OrderPrice oPrice in bill.Orders)
             {
@@ -194,6 +191,55 @@ namespace WebServices
             xml += "\t\t<Total>" + bill.Total + "</Total>\n";
             xml += "\t</PriceSummary>\n";
             xml += "\t<Paid>" + bill.Paid + "</Paid>\n";
+            xml += "</Bill>";
+            return xml;
+        }
+
+        /*public static string xmlShortBillBuilder(Bill bill)
+        {
+            string xml = header + "<Bill>";
+            xml += "<Company>" + bill.CompanyInfo.Name + "</Company>";
+            xml += "<Date>" + bill.Date.ToString() + "</Date>";
+            xml += "<Table>" + bill.TableID + "</Table>";
+            xml += "<Orders>";
+            foreach (OrderPrice oPrice in bill.Orders)
+                xml += "<Order name=\"" + oPrice.Order.Product + "\" amount=\"" + 
+                    oPrice.Order.Amount + "\" price=\"" + oPrice.Price + "\" discount=\"" +
+                    oPrice.Discount + "\" total=\"" + oPrice.Total + "\"/>";
+            xml += "</Orders>";
+            xml += "<PriceSummary subtotal=\"" + bill.Subtotal + "\" discount=\"" + bill.Discount +
+                "\" taxBase=\"" + bill.TaxBase + "\" IVA=\"" + bill.Iva + "\" quote=\"" + bill.Quote +
+                "\" total=\"" + bill.Total + "\"/>";
+            xml += "</Bill>";
+            return xml;
+        }*/
+
+        public static string xmlShortBillBuilder(Bill bill)
+        {
+            string xml = header + "<Bill>";
+            xml += "<Company>" + bill.CompanyInfo.Name + "</Company>";
+            xml += "<Date>" + bill.Date.ToString() + "</Date>";
+            xml += "<Table>" + bill.TableID + "</Table>";
+            xml += "<Orders>";
+            foreach (OrderPrice oPrice in bill.Orders)
+            {
+                xml += "<Order id=\"" + oPrice.Order.Id + "\">";
+                xml += "<Name>" + oPrice.Order.Product + "</Name>";
+                xml += "<Amount>" + oPrice.Order.Amount + "</Amount>";
+                xml += "<Price>" + oPrice.Price + "</Price>";
+                xml += "<Discount>" + oPrice.Discount + "</Discount>";
+                xml += "<Total>" + oPrice.Total + "</Total>";
+                xml += "</Order>";
+            }
+            xml += "</Orders>";
+            xml += "<PriceSummary>";
+            xml += "<Subtotal>" + bill.Subtotal + "</Subtotal>";
+            xml += "<Discount>" + bill.Discount + "</Discount>";
+            xml += "<TaxBase>" + bill.TaxBase + "</TaxBase>";
+            xml += "<IVA>" + bill.Iva + "</IVA>";
+            xml += "<Quote>" + bill.Quote + "</Quote>";
+            xml += "<Total>" + bill.Total + "</Total>";
+            xml += "</PriceSummary>";
             xml += "</Bill>";
             return xml;
         }

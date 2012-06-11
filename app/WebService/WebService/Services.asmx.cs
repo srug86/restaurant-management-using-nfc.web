@@ -235,18 +235,22 @@ namespace WebServices
         [WebMethod(Description = "Calcula la factura de una mesa y la devuelve en formato XML")]
         public string getBill(int tableID, bool _short)
         {
-            string xmlBill = SqlProcessor.selectBillTable(tableID);
-            if (xmlBill == "")
-            {
-                Bill bill = generateBill(tableID);
-                SqlProcessor.increaseNBill();
-                xmlBill = XmlProcessor.xmlBillBuilder(bill, false);
-                SqlProcessor.insertBill(bill, xmlBill);
-            }
+            string xmlBill = "";
             if (_short)
             {
                 Bill bill = generateBill(tableID);
-                xmlBill = XmlProcessor.xmlBillBuilder(bill, true);
+                xmlBill = XmlProcessor.xmlShortBillBuilder(bill);
+            }
+            else
+            {
+                xmlBill = SqlProcessor.selectBillTable(tableID);
+                if (xmlBill == "")
+                {
+                    Bill bill = generateBill(tableID);
+                    SqlProcessor.increaseNBill();
+                    xmlBill = XmlProcessor.xmlBillBuilder(bill);
+                    SqlProcessor.insertBill(bill, xmlBill);
+                }
             }
             return xmlBill;
         }
