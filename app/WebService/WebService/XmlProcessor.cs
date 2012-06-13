@@ -216,30 +216,38 @@ namespace WebServices
 
         public static string xmlShortBillBuilder(Bill bill)
         {
-            string xml = header + "<Bill>";
-            xml += "<Company>" + bill.CompanyInfo.Name + "</Company>";
-            xml += "<Date>" + bill.Date.ToString() + "</Date>";
-            xml += "<Table>" + bill.TableID + "</Table>";
-            xml += "<Orders>";
+            string xml = header + "<Bill>\n";
+            xml += "\t<Company>" + bill.CompanyInfo.Name + "</Company>\n";
+            xml += "\t<Date>" + bill.Date.ToString() + "</Date>\n";
+            xml += "\t<Table>" + bill.TableID + "</Table>\n";
+            xml += "\t<Orders>\n";
             foreach (OrderPrice oPrice in bill.Orders)
             {
-                xml += "<Order id=\"" + oPrice.Order.Id + "\">";
-                xml += "<Name>" + oPrice.Order.Product + "</Name>";
-                xml += "<Amount>" + oPrice.Order.Amount + "</Amount>";
-                xml += "<Price>" + oPrice.Price + "</Price>";
-                xml += "<Discount>" + oPrice.Discount + "</Discount>";
-                xml += "<Total>" + oPrice.Total + "</Total>";
-                xml += "</Order>";
+                xml += "\t\t<Order product=\"" + oPrice.Order.Product + "\">\n";
+                xml += "\t\t\t<Amount>" + oPrice.Order.Amount + "</Amount>\n";
+                xml += "\t\t\t<Price>" + Convert.ToString(oPrice.Price).Replace(',', '.')
+                    +"</Price>\n";
+                xml += "\t\t\t<PDiscount>" + Convert.ToString(oPrice.Discount).Replace(',', '.')
+                    + "</PDiscount>\n";
+                xml += "\t\t\t<PTotal>" + Convert.ToString(oPrice.Total).Replace(',', '.')
+                    + "</PTotal>\n";
+                xml += "\t\t</Order>\n";
             }
-            xml += "</Orders>";
-            xml += "<PriceSummary>";
-            xml += "<Subtotal>" + bill.Subtotal + "</Subtotal>";
-            xml += "<Discount>" + bill.Discount + "</Discount>";
-            xml += "<TaxBase>" + bill.TaxBase + "</TaxBase>";
-            xml += "<IVA>" + bill.Iva + "</IVA>";
-            xml += "<Quote>" + bill.Quote + "</Quote>";
-            xml += "<Total>" + bill.Total + "</Total>";
-            xml += "</PriceSummary>";
+            xml += "\t</Orders>\n";
+            xml += "\t<PriceSummary>\n";
+            xml += "\t\t<Subtotal>" + Convert.ToString(bill.Subtotal).Replace(',', '.')
+                + "</Subtotal>\n";
+            xml += "\t\t<BDiscount>" + Convert.ToString(bill.Discount).Replace(',', '.')
+                + "</BDiscount>\n";
+            xml += "\t\t<TaxBase>" + Convert.ToString(bill.TaxBase).Replace(',', '.')
+                + "</TaxBase>\n";
+            xml += "\t\t<IVA>" + Convert.ToString(bill.Iva).Replace(',', '.')
+                + "</IVA>\n";
+            xml += "\t\t<Quote>" + Convert.ToString(bill.Quote).Replace(',', '.')
+                + "</Quote>\n";
+            xml += "\t\t<BTotal>" + Convert.ToString(bill.Total).Replace(',', '.')
+                + "</BTotal>\n";
+            xml += "\t</PriceSummary>\n";
             xml += "</Bill>";
             return xml;
         }
@@ -252,25 +260,30 @@ namespace WebServices
             xml += "\t\t<Usually>\n";
             foreach (RecProduct product in rec.Usually)
             {
-                xml += "\t\t\t<Category name=\"" + product.Category + "\">\n";
-                xml += "\t\t\t\t<Product>" + product.Name + "</Product>\n";
-                xml += "\t\t\t\t<Times>" + product.Times + "</Times>\n";
-                xml += "\t\t\t</Category>\n";
+                xml += "\t\t\t<UCategory name=\"" + product.Category + "\">\n";
+                xml += "\t\t\t\t<UProduct>" + product.Name + "</UProduct>\n";
+                xml += "\t\t\t\t<UTimes>" + product.Times + "</UTimes>\n";
+                xml += "\t\t\t</UCategory>\n";
             }
             xml += "\t\t</Usually>\n";
             xml += "\t\t<Promotional>\n";
             foreach (RecProduct product in rec.Promotional)
             {
-                xml += "\t\t\t<Product name=\"" + product.Name + "\">\n";
-                xml += "\t\t\t\t<Discount>" + product.Discount + "</Discount>\n";
-                xml += "\t\t\t\t<Units>" + product.DiscountedUnit + "</Units>\n";
-                xml += "\t\t\t</Product>\n";
+                xml += "\t\t\t<PProduct name=\"" + product.Name + "\">\n";
+                xml += "\t\t\t\t<PDiscount>" + Convert.ToString(product.Discount).Replace(',', '.')
+                    + "</PDiscount>\n";
+                xml += "\t\t\t\t<PUnits>" + Convert.ToString(product.DiscountedUnit).Replace(',', '.')
+                    + "</PUnits>\n";
+                xml += "\t\t\t</PProduct>\n";
             }
             xml += "\t\t</Promotional>\n";
             xml += "\t\t<Recommended>\n";
             foreach (RecProduct product in rec.Recommended)
-                xml += "\t\t\t<Product name=\"" + product.Name + "\" category=\"" +
-                    product.Category + "\">\n";
+            {
+                xml += "\t\t\t<RProduct name=\"" + product.Name + "\">\n";
+                xml += "\t\t\t\t<RCategory>" + product.Category + "</RCategory>\n";
+                xml += "\t\t\t</RProduct>\n";
+            }
             xml += "\t\t</Recommended>\n";
             xml += "\t</Products>\n";
             xml += "</Recommendations>";
