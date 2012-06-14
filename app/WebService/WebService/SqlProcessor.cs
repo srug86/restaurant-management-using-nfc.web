@@ -416,9 +416,9 @@ namespace WebServices
             db.connect();
             db.setData("TRUNCATE TABLE Restaurants");
             db.setData("DELETE FROM Address WHERE nif = '" + company.NIF + "'");
-            db.getData("INSERT INTO Restaurants (nif, name, phone, fax, mail, iva, discount, discountedVisit, nBill, serial) VALUES ('" +
+            db.setData("INSERT INTO Restaurants (nif, name, phone, fax, mail, iva, discount, discountedVisit, nBill, serial, currentRoom) VALUES ('" +
                 company.NIF + "', '" + company.Name + "', " + company.Phone + ", " + company.Fax +
-                ", '" + company.Email + "', '" + iva + "', '" + discount + "', " + discountedVisit + ", 1, 1)");
+                ", '" + company.Email + "', '" + iva + "', '" + discount + "', " + discountedVisit + ", 1, 1, 'none')");
             db.disconnect();
         }
 
@@ -503,6 +503,24 @@ namespace WebServices
         {
             db.connect();
             db.setData("UPDATE Restaurants SET serial = serial + 1");
+            db.disconnect();
+        }
+
+        public static string selectRestaurantRoom()
+        {
+            string room = "none";
+            db.connect();
+            SqlDataReader data = db.getData("SELECT currentRoom FROM Restaurants");
+            while (data.Read())
+                room = data.GetString(0).Trim();
+            db.disconnect();
+            return room;
+        }
+
+        public static void saveCurrentRoom(string room)
+        {
+            db.connect();
+            db.setData("UPDATE Restaurants SET currentRoom = '" + room + "'");
             db.disconnect();
         }
 

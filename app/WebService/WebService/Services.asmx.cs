@@ -20,22 +20,32 @@ namespace WebServices
     public class Services : System.Web.Services.WebService
     {
         /* Servicios comunes */
-        [WebMethod(Description = "Devuelve 'true' si se ha invocado al método satisfactoriamente")]
-        public bool connect()
-        {
-            return true;
-        }
-
         [WebMethod(Description = "Devuelve una cadena en formato XML con la lista de restaurantes almacenados en la BD")]
         public string getRooms()
         {
             return XmlProcessor.xmlRoomsBuilder(SqlProcessor.selectAllRooms());
         }
 
+        [WebMethod(Description = "Devuelve una cadena en formato XML con la especificación del restaurante actualmente cargado")]
+        public string getCurrentRoom()
+        {
+            string name = SqlProcessor.selectRestaurantRoom();
+            if (!name.Equals("none") && !name.Equals(""))
+            {
+                Room room = SqlProcessor.selectRoom(name);
+                List<Room> rooms = new List<Room>();
+                rooms.Add(room);
+                return XmlProcessor.xmlRoomsBuilder(rooms);
+            }
+            return "";
+        }
+
         [WebMethod(Description = "Devuelve una cadena en formato XML con la especificación de los elementos del restaurante 'name'")]
         public string getRoom(string name)
         {
-            return SqlProcessor.selectRoom(name).Xml;
+            Room room = SqlProcessor.selectRoom(name);
+            SqlProcessor.saveCurrentRoom(room.Name);
+            return room.Xml;
         }
 
         [WebMethod(Description = "Guarda en la BD la especificación del restaurante (contenida en 'xml')")]
@@ -299,7 +309,7 @@ namespace WebServices
             Table table = SqlProcessor.selectTable(tableID);
             bill.ClientInfo = SqlProcessor.selectClient(table.Client);
             bill.ClientAddress = SqlProcessor.selectAddress(bill.ClientInfo.Dni);
-            bill.Date = DateTime.Today;
+            bill.Date = DateTime.Now;
             bill.TableID = tableID;
             bill.Iva = SqlProcessor.selectIVA();
             bill.Discount = SqlProcessor.selectDiscount();
@@ -316,7 +326,7 @@ namespace WebServices
                     oPrice.Discount = ((int)(order.Amount / product.DiscountedUnit)) * product.Discount * product.Price;
                 else
                     oPrice.Discount = 0;
-                oPrice.Total = ((product.Price * order.Amount) * (1 - oPrice.Discount));
+                oPrice.Total = (product.Price * order.Amount) - oPrice.Discount;
                 bill.Orders.Add(oPrice);
                 bill.Subtotal += oPrice.Total;
             }
