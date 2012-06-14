@@ -195,25 +195,6 @@ namespace WebServices
             return xml;
         }
 
-        /*public static string xmlShortBillBuilder(Bill bill)
-        {
-            string xml = header + "<Bill>";
-            xml += "<Company>" + bill.CompanyInfo.Name + "</Company>";
-            xml += "<Date>" + bill.Date.ToString() + "</Date>";
-            xml += "<Table>" + bill.TableID + "</Table>";
-            xml += "<Orders>";
-            foreach (OrderPrice oPrice in bill.Orders)
-                xml += "<Order name=\"" + oPrice.Order.Product + "\" amount=\"" + 
-                    oPrice.Order.Amount + "\" price=\"" + oPrice.Price + "\" discount=\"" +
-                    oPrice.Discount + "\" total=\"" + oPrice.Total + "\"/>";
-            xml += "</Orders>";
-            xml += "<PriceSummary subtotal=\"" + bill.Subtotal + "\" discount=\"" + bill.Discount +
-                "\" taxBase=\"" + bill.TaxBase + "\" IVA=\"" + bill.Iva + "\" quote=\"" + bill.Quote +
-                "\" total=\"" + bill.Total + "\"/>";
-            xml += "</Bill>";
-            return xml;
-        }*/
-
         public static string xmlShortBillBuilder(Bill bill)
         {
             string xml = header + "<Bill>\n";
