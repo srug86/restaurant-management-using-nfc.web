@@ -47,7 +47,10 @@ namespace WebServices.objects
             set { capacity = value; }
         }
 
-        public Room() { }
+        public Room()
+        {
+            Name = "";
+        }
 
         public Room(string name, int width, int height, int tables, int capacity, string xml)
         {

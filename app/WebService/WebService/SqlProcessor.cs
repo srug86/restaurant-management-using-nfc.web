@@ -21,6 +21,13 @@ namespace WebServices
             db.disconnect();
         }
 
+        public static void deleteRoom(string name)
+        {
+            db.connect();
+            db.setData("DELETE FROM Room WHERE name = '" + name + "'");
+            db.disconnect();
+        }
+
         public static Room selectRoom(string name)
         {
             Room room = new Room();
@@ -357,6 +364,17 @@ namespace WebServices
             return xml;
         }
 
+        public static int selectBillID(int tableID)
+        {
+            int id = 0;
+            db.connect();
+            SqlDataReader data = db.getData("SELECT Id FROM Bills WHERE tableID = " + tableID + " AND paid = 0");
+            while (data.Read())
+                id = data.GetInt16(0);
+            db.disconnect();
+            return id;
+        }
+
         public static double selectBillAmount(int tableID)
         {
             double amount = 0.0;
@@ -527,9 +545,13 @@ namespace WebServices
         /* Acceso a la tabla del historial de pedidos 'Historical' */
         public static void insertHistoricalOrder(string client, Order order)
         {
+            int id = 0;
             db.connect();
-            db.setData("INSERT INTO Historical (id, client, product, amount, date) VALUES (NEWID(), '" + client + 
-                "', '" + order.Product + "', " + order.Amount + ", '" + order.Date.ToString() + "')");
+
+            db.setData("INSERT INTO Historical (id, client, product, amount, date) VALUES (" + id + ", '" + 
+                client + "', '" + order.Product + "', " + order.Amount + ", '" + order.Date.ToString() + "')");
+            //db.setData("INSERT INTO Historical (client, product, amount, date) VALUES ('" + client + 
+            //    "', '" + order.Product + "', " + order.Amount + ", '" + order.Date.ToString() + "')");
             db.disconnect();
         }
 
@@ -538,10 +560,8 @@ namespace WebServices
             List<HistoricalOrder> orders = new List<HistoricalOrder>();
             db.connect();
             SqlDataReader data;
-            if (client.Equals(""))
-                data = db.getData("SELECT * FROM Historical");
-            else
-                data = db.getData("SELECT * FROM Historical WHERE client = '" + client + "'");
+            if (client.Equals("")) data = db.getData("SELECT * FROM Historical");
+            else data = db.getData("SELECT * FROM Historical WHERE client = '" + client + "'");
             while (data.Read())
             {
                 HistoricalOrder o = new HistoricalOrder();
