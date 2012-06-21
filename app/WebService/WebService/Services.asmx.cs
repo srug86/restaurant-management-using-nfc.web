@@ -34,23 +34,25 @@ namespace WebServices
             {
                 Room room = SqlProcessor.selectRoom(name);
                 List<Room> rooms = new List<Room>();
-                rooms.Add(room);
+                if (!room.Name.Equals("")) rooms.Add(room);
                 return XmlProcessor.xmlRoomsBuilder(rooms);
             }
             return "";
         }
 
         [WebMethod(Description = "Devuelve una cadena en formato XML con la especificación de los elementos del restaurante 'name'")]
-        public string getRoom(string name)
+        public string getRoom(string name, bool save)
         {
             Room room = SqlProcessor.selectRoom(name);
-            SqlProcessor.saveCurrentRoom(room.Name);
+            if (save) SqlProcessor.saveCurrentRoom(room.Name);
             return room.Xml;
         }
 
         [WebMethod(Description = "Guarda en la BD la especificación del restaurante (contenida en 'xml')")]
-        public void saveRoom(string xml)
+        public void saveRoom(string name, string xml)
         {
+            Room room = SqlProcessor.selectRoom(name);
+            if (!room.Name.Equals("")) SqlProcessor.deleteRoom(name);
             SqlProcessor.insertRoom(XmlProcessor.xmlAddRoomDecoder(xml));
         }
 
@@ -101,6 +103,22 @@ namespace WebServices
             SqlProcessor.truncateDB();
         }
 
+        [WebMethod(Description = "Marca la factura y todos sus pedidos como 'pagados' y devuelve el estado actual de las mesas")]
+        public string payBill(int billID, int type)
+        {
+            SqlProcessor.updateBillStatus(billID, type);
+            int tableID = SqlProcessor.selectTableBill(billID);
+            string client = SqlProcessor.selectTable(tableID).Client;
+            SqlProcessor.updateClient(client, 2, -3);
+            foreach (Order o in SqlProcessor.selectTableOrders(tableID))
+            {
+                SqlProcessor.updateOrder(o.Id, -3, 3, -3);
+                SqlProcessor.insertHistoricalOrder(client, o);  // los pedidos son añadidos al histórico
+            }
+            SqlProcessor.updateTable(tableID, 3, "", -3);
+            return XmlProcessor.xmlTablesStatusBuilder(SqlProcessor.selectAllTables());
+        }
+
         /* Servicios propios del recibidor */
         [WebMethod(Description = "Devuelve el estado almacenado del cliente con id 'clientID' y lo actualiza")]
         public int getClientStatus(string xmlClient)
@@ -134,6 +152,12 @@ namespace WebServices
         public double getBillAmount(int tableID)
         {
             return SqlProcessor.selectBillAmount(tableID);
+        }
+
+        [WebMethod(Description = "Devuelve el identificador de la factura para la mesa 'tableID'")]
+        public int getBillID(int tableID)
+        {
+            return SqlProcessor.selectBillID(tableID);
         }
 
         [WebMethod(Description = "Devuelve una cadena en formato XML con el estado de las mesas después de asignar un cliente a una mesa")]
@@ -265,22 +289,6 @@ namespace WebServices
             return xmlBill;
         }
 
-        [WebMethod(Description = "Marca la factura y todos sus pedidos como 'pagados' y devuelve el estado actual de las mesas")]
-        public string payBill(int billID, int type)
-        {
-            SqlProcessor.updateBillStatus(billID, type);
-            int tableID = SqlProcessor.selectTableBill(billID);
-            string client = SqlProcessor.selectTable(tableID).Client;
-            SqlProcessor.updateClient(client, 2, -3);
-            foreach (Order o in SqlProcessor.selectTableOrders(tableID))
-            {
-                SqlProcessor.updateOrder(o.Id, -3, 3, -3);
-                SqlProcessor.insertHistoricalOrder(client, o);  // los pedidos son añadidos al histórico
-            }
-            SqlProcessor.updateTable(tableID, 3, "", -3);
-            return XmlProcessor.xmlTablesStatusBuilder(SqlProcessor.selectAllTables());
-        }
-
         private void recalculateTablesStatus()
         {
             foreach (Table table in SqlProcessor.selectAllTables())
@@ -312,7 +320,10 @@ namespace WebServices
             bill.Date = DateTime.Now;
             bill.TableID = tableID;
             bill.Iva = SqlProcessor.selectIVA();
-            bill.Discount = SqlProcessor.selectDiscount();
+            int dVisit = SqlProcessor.selectDiscountedVisit();
+            if (bill.ClientInfo.Appearances % dVisit == 0)
+                bill.Discount = SqlProcessor.selectDiscount();
+            else bill.Discount = 0.0;
             bill.Id = SqlProcessor.selectNBill();
             bill.Serial = SqlProcessor.selectSerial();
             List<Order> orders = SqlProcessor.selectTableOrders(tableID);
