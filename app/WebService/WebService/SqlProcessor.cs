@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using WebServices.objects;
-using System.Data.SqlClient;
+using MySql.Data.MySqlClient;
 
 namespace WebServices
 {
@@ -32,7 +32,7 @@ namespace WebServices
         {
             Room room = new Room();
             db.connect();
-            SqlDataReader data = db.getData("SELECT * FROM Rooms WHERE name = '" + name + "'");
+            MySqlDataReader data = db.getData("SELECT * FROM Rooms WHERE name = '" + name + "'");
             while (data.Read())
             {
                 room.Name = data.GetString(0).Trim();
@@ -50,7 +50,7 @@ namespace WebServices
         {
             List<Room> rooms = new List<Room>();
             db.connect();
-            SqlDataReader data = db.getData("SELECT * FROM Rooms");
+            MySqlDataReader data = db.getData("SELECT * FROM Rooms");
             while (data.Read())
             {
                 Room room = new Room();
@@ -81,7 +81,7 @@ namespace WebServices
         {
             Product product = new Product();
             db.connect();
-            SqlDataReader data = db.getData("SELECT * FROM Products WHERE name = '" + name + "'");
+            MySqlDataReader data = db.getData("SELECT * FROM Products WHERE name = '" + name + "'");
             while (data.Read())
             {
                 product.Name = data.GetString(0).Trim();
@@ -100,7 +100,7 @@ namespace WebServices
         {
             List<Product> products = new List<Product>();
             db.connect();
-            SqlDataReader data;
+            MySqlDataReader data;
             if (nonVisible)
                 data = db.getData("SELECT * FROM Products");
             else
@@ -134,7 +134,7 @@ namespace WebServices
             db.connect();
             db.setData("INSERT INTO Orders (Id, tableID, product, amount, status, date) VALUES (" +
                 order.Id + "," + order.TableID + ", '" + order.Product + "', " + order.Amount + ", " + 
-                order.Status + ", '" + order.Date.ToString() + "')");
+                order.Status + ", '" + dateTime2MySqlDateTime(order.Date) + "')");
             db.disconnect();
         }
 
@@ -159,7 +159,7 @@ namespace WebServices
         {
             List<Order> orders = new List<Order>();
             db.connect();
-            SqlDataReader data = db.getData("SELECT * FROM Orders WHERE tableID = " + tableID);
+            MySqlDataReader data = db.getData("SELECT * FROM Orders WHERE tableID = " + tableID);
             while (data.Read())
             {
                 Order order = new Order();
@@ -168,7 +168,7 @@ namespace WebServices
                 order.Product = data.GetString(2).Trim();
                 order.Amount = data.GetInt16(3);
                 order.Status = data.GetInt16(4);
-                order.Date = Convert.ToDateTime(data.GetSqlDateTime(5).ToString());
+                order.Date = DateTime.Parse(data.GetDateTime(5).ToString());
                 orders.Add(order);
             }
             db.disconnect();
@@ -179,7 +179,7 @@ namespace WebServices
         {
             List<Order> orders = new List<Order>();
             db.connect();
-            SqlDataReader data = db.getData("SELECT * FROM Orders");
+            MySqlDataReader data = db.getData("SELECT * FROM Orders");
             while (data.Read())
             {
                 Order order = new Order();
@@ -188,7 +188,7 @@ namespace WebServices
                 order.Product = data.GetString(2).Trim();
                 order.Amount = data.GetInt16(3);
                 order.Status = data.GetInt16(4);
-                order.Date = Convert.ToDateTime(data.GetSqlDateTime(5).ToString());
+                order.Date = DateTime.Parse(data.GetDateTime(5).ToString());
                 orders.Add(order);
             }
             db.disconnect();
@@ -233,7 +233,7 @@ namespace WebServices
         {
             Client client = new Client();
             db.connect();
-            SqlDataReader data = db.getData("SELECT * FROM Clients WHERE dni = '" + dni + "'");
+            MySqlDataReader data = db.getData("SELECT * FROM Clients WHERE dni = '" + dni + "'");
             while (data.Read())
             {
                 client.Dni = data.GetString(0).Trim();
@@ -302,7 +302,7 @@ namespace WebServices
         {
             Table table = new Table();
             db.connect();
-            SqlDataReader data = db.getData(sql);
+            MySqlDataReader data = db.getData(sql);
             while (data.Read())
             {
                 table.Id = data.GetInt16(0);
@@ -319,7 +319,7 @@ namespace WebServices
         {
             List<Table> tables = new List<Table>();
             db.connect();
-            SqlDataReader data = db.getData("SELECT * FROM Tables");
+            MySqlDataReader data = db.getData("SELECT * FROM Tables");
             while (data.Read())
             {
                 Table table = new Table();
@@ -346,7 +346,7 @@ namespace WebServices
         {
             int tableID = 0;
             db.connect();
-            SqlDataReader data = db.getData("SELECT tableID FROM Bills WHERE Id = " + billID);
+            MySqlDataReader data = db.getData("SELECT tableID FROM Bills WHERE Id = " + billID);
             while (data.Read())
                 tableID = data.GetInt16(0);
             db.disconnect();
@@ -357,7 +357,7 @@ namespace WebServices
         {
             string xml = "";
             db.connect();
-            SqlDataReader data = db.getData("SELECT xml FROM Bills WHERE tableID = " + tableID + " AND paid = 0");
+            MySqlDataReader data = db.getData("SELECT xml FROM Bills WHERE tableID = " + tableID + " AND paid = 0");
             while (data.Read())
                 xml = data.GetString(0).Trim();
             db.disconnect();
@@ -368,7 +368,7 @@ namespace WebServices
         {
             int id = 0;
             db.connect();
-            SqlDataReader data = db.getData("SELECT Id FROM Bills WHERE tableID = " + tableID + " AND paid = 0");
+            MySqlDataReader data = db.getData("SELECT Id FROM Bills WHERE tableID = " + tableID + " AND paid = 0");
             while (data.Read())
                 id = data.GetInt16(0);
             db.disconnect();
@@ -379,7 +379,7 @@ namespace WebServices
         {
             double amount = 0.0;
             db.connect();
-            SqlDataReader data = db.getData("SELECT total FROM Bills WHERE tableID = " + tableID);
+            MySqlDataReader data = db.getData("SELECT total FROM Bills WHERE tableID = " + tableID);
             while (data.Read())
                 amount = Convert.ToDouble(data.GetString(0).Trim());
             return amount;
@@ -389,7 +389,7 @@ namespace WebServices
         {
             db.connect();
             db.setData("INSERT INTO Bills (Id, tableID, client, date, total, paid, xml) VALUES (" + 
-                bill.Id + ", " + bill.TableID + ", '" + bill.ClientInfo.Dni + "', '" + bill.Date.ToString() + 
+                bill.Id + ", " + bill.TableID + ", '" + bill.ClientInfo.Dni + "', '" + dateTime2MySqlDateTime(bill.Date) + 
                 "', '" + bill.Total + "', " + bill.Paid + ", '" + xml + "')");
             db.disconnect();
         }
@@ -415,7 +415,7 @@ namespace WebServices
         {
             Address address = new Address();
             db.connect();
-            SqlDataReader data = db.getData("SELECT * FROM Address WHERE nif = '" + nif + "'");
+            MySqlDataReader data = db.getData("SELECT * FROM Address WHERE nif = '" + nif + "'");
             while (data.Read())
             {
                 address.Street = data.GetString(1).Trim();
@@ -444,7 +444,7 @@ namespace WebServices
         {
             Company company = new Company();
             db.connect();
-            SqlDataReader data = db.getData("SELECT * FROM Restaurants");
+            MySqlDataReader data = db.getData("SELECT * FROM Restaurants");
             while (data.Read())
             {
                 company.NIF = data.GetString(0).Trim();
@@ -461,7 +461,7 @@ namespace WebServices
         {
             double iva = 0.0;
             db.connect();
-            SqlDataReader data = db.getData("SELECT iva FROM Restaurants");
+            MySqlDataReader data = db.getData("SELECT iva FROM Restaurants");
             while (data.Read())
                 iva = Convert.ToDouble(data.GetString(0));
             db.disconnect();
@@ -472,7 +472,7 @@ namespace WebServices
         {
             int visits = 0;
             db.connect();
-            SqlDataReader data = db.getData("SELECT discountedVisit FROM Restaurants");
+            MySqlDataReader data = db.getData("SELECT discountedVisit FROM Restaurants");
             while (data.Read())
                 visits = data.GetInt16(0);
             db.disconnect();
@@ -483,7 +483,7 @@ namespace WebServices
         {
             double discount = 0.0;
             db.connect();
-            SqlDataReader data = db.getData("SELECT discount FROM Restaurants");
+            MySqlDataReader data = db.getData("SELECT discount FROM Restaurants");
             while (data.Read())
                 discount = Convert.ToDouble(data.GetString(0));
             db.disconnect();
@@ -494,7 +494,7 @@ namespace WebServices
         {
             int nBill = 1;
             db.connect();
-            SqlDataReader data = db.getData("SELECT nBill FROM Restaurants");
+            MySqlDataReader data = db.getData("SELECT nBill FROM Restaurants");
             while (data.Read())
                 nBill = data.GetInt32(0);
             return nBill;
@@ -511,7 +511,7 @@ namespace WebServices
         {
             int serial = 1;
             db.connect();
-            SqlDataReader data = db.getData("SELECT serial FROM Restaurants");
+            MySqlDataReader data = db.getData("SELECT serial FROM Restaurants");
             while (data.Read())
                 serial = data.GetInt32(0);
             return serial;
@@ -528,7 +528,7 @@ namespace WebServices
         {
             string room = "none";
             db.connect();
-            SqlDataReader data = db.getData("SELECT currentRoom FROM Restaurants");
+            MySqlDataReader data = db.getData("SELECT currentRoom FROM Restaurants");
             while (data.Read())
                 room = data.GetString(0).Trim();
             db.disconnect();
@@ -545,13 +545,9 @@ namespace WebServices
         /* Acceso a la tabla del historial de pedidos 'Historical' */
         public static void insertHistoricalOrder(string client, Order order)
         {
-            int id = 0;
             db.connect();
-
-            db.setData("INSERT INTO Historical (id, client, product, amount, date) VALUES (" + id + ", '" + 
-                client + "', '" + order.Product + "', " + order.Amount + ", '" + order.Date.ToString() + "')");
-            //db.setData("INSERT INTO Historical (client, product, amount, date) VALUES ('" + client + 
-            //    "', '" + order.Product + "', " + order.Amount + ", '" + order.Date.ToString() + "')");
+            db.setData("INSERT INTO Historical (client, product, amount, date) VALUES ('" + client + "', '" + 
+                order.Product + "', " + order.Amount + ", '" + dateTime2MySqlDateTime(order.Date) + "')");
             db.disconnect();
         }
 
@@ -559,7 +555,7 @@ namespace WebServices
         {
             List<HistoricalOrder> orders = new List<HistoricalOrder>();
             db.connect();
-            SqlDataReader data;
+            MySqlDataReader data;
             if (client.Equals("")) data = db.getData("SELECT * FROM Historical");
             else data = db.getData("SELECT * FROM Historical WHERE client = '" + client + "'");
             while (data.Read())
@@ -568,7 +564,7 @@ namespace WebServices
                 o.Client = data.GetString(1).Trim();
                 o.Product = data.GetString(2).Trim();
                 o.Amount = data.GetInt32(3);
-                o.Date = Convert.ToDateTime(data.GetSqlDateTime(4).ToString());
+                o.Date = DateTime.Parse(data.GetDateTime(4).ToString());
                 orders.Add(o);
             }
             return orders;
@@ -587,6 +583,11 @@ namespace WebServices
             db.setData("TRUNCATE TABLE Address");
             db.setData("TRUNCATE TABLE Restaurants");
             db.disconnect();
+        }
+
+        public static string dateTime2MySqlDateTime(DateTime date)
+        {
+            return date.Year + "-" + date.Month + "-" + date.Day + " " + date.Hour + ":" + date.Minute + ":" + date.Second;
         }
     }
 }

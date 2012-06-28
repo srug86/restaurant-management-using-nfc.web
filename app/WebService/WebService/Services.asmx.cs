@@ -321,7 +321,7 @@ namespace WebServices
             bill.TableID = tableID;
             bill.Iva = SqlProcessor.selectIVA();
             int dVisit = SqlProcessor.selectDiscountedVisit();
-            if (bill.ClientInfo.Appearances % dVisit == 0)
+            if (bill.ClientInfo.Appearances % dVisit == 0 && bill.ClientInfo.Appearances > 0)
                 bill.Discount = SqlProcessor.selectDiscount();
             else bill.Discount = 0.0;
             bill.Id = SqlProcessor.selectNBill();

@@ -3,17 +3,20 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using System.Data.SqlClient;
+using MySql.Data.MySqlClient;
+using System.Data;
 
 namespace WebServices
 {
     public sealed class DBProxy
     {
         static readonly DBProxy instance = new DBProxy();
-        const string connectionString = @"Data Source=.\SQLEXPRESS;AttachDbFilename=C:\Users\Sergio\Documents\pfc\web\app\WebService\WebService\App_Data\Database.mdf;Integrated Security=True;User Instance=True";
-        //const string connectionString = @"Data Source=.\SQLEXPRESS;AttachDbFilename=C:\Documents and Settings\Sergio\Mis documentos\pfc\web\app\WebService\WebService\App_Data\Database.mdf;Integrated Security=True;User Instance=True";
 
-        private SqlConnection connection = null;
-        private SqlDataReader data = null;
+        //const string connectionString = "server=161.67.140.37:3500;database=mobicarta;uid=sergio.rubia;pwd=sergiodlr2012";
+        const string connectionString = "server=192.168.1.36;database=MobiCarta;uid=root;pwd=root";
+
+        private MySqlConnection connection = null;
+        private MySqlDataReader data = null;
 
         static DBProxy() { }
         DBProxy() { }
@@ -25,7 +28,7 @@ namespace WebServices
 
         public void connect()
         {
-            connection = new SqlConnection(connectionString);
+            connection = new MySqlConnection(connectionString);
             connection.Open();
         }
 
@@ -35,18 +38,16 @@ namespace WebServices
             connection.Close();
         }
 
-        public void setData(string sql) // Sentencias de tipo INSERT o UPDATE
+        public void setData(string sql)
         {
-            SqlCommand command = new SqlCommand(sql, connection);
+            MySqlCommand command = new MySqlCommand(sql, connection);
             command.ExecuteNonQuery();
         }
 
-        public SqlDataReader getData(string sql)   // Sentencias de tipo SELECT
+        public MySqlDataReader getData(string sql)
         {
-            SqlCommand command = new SqlCommand();
-            command.CommandText = sql;
-            command.Connection = connection;
-            SqlDataReader data = command.ExecuteReader();
+            MySqlCommand command = new MySqlCommand(sql, connection);
+            MySqlDataReader data = command.ExecuteReader();
             return data;
         }
     }
