@@ -12,8 +12,8 @@ namespace WebServices
     {
         static readonly DBProxy instance = new DBProxy();
 
-        //const string connectionString = "server=161.67.140.37:3500;database=mobicarta;uid=sergio.rubia;pwd=sergiodlr2012";
-        const string connectionString = "server=192.168.1.36;database=MobiCarta;uid=root;pwd=root";
+        const string connectionString = "server=161.67.140.37;database=mobicarta;uid=sergio.rubia;pwd=sergiodlr2012";
+        //const string connectionString = "server=192.168.1.36;database=MobiCarta;uid=root;pwd=root";
 
         private MySqlConnection connection = null;
         private MySqlDataReader data = null;
