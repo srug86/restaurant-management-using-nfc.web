@@ -155,11 +155,13 @@ namespace WebServices
             db.disconnect();
         }
 
-        public static List<Order> selectTableOrders(int tableID)
+        public static List<Order> selectTableOrders(int tableID, bool all)
         {
             List<Order> orders = new List<Order>();
             db.connect();
-            MySqlDataReader data = db.getData("SELECT * FROM Orders WHERE tableID = " + tableID);
+            string command = "SELECT * FROM Orders WHERE tableID = " + tableID;
+            command += all ? "" : " AND status <> -1 AND status <> 3";
+            MySqlDataReader data = db.getData(command);
             while (data.Read())
             {
                 Order order = new Order();
@@ -210,6 +212,25 @@ namespace WebServices
         }
 
         /* Acceso a la tabla de clientes 'Clients' */
+        public static List<Client> selectClients()
+        {
+            List<Client> clients = new List<Client>();
+            db.connect();
+            MySqlDataReader data = db.getData("SELECT * FROM Clients ORDER BY status DESC, appearances DESC");
+            while (data.Read())
+            {
+                Client client = new Client();
+                client.Dni = data.GetString(0);
+                client.Name = data.GetString(1);
+                client.Surname = data.GetString(2);
+                client.Status = data.GetInt16(3);
+                client.Appearances = data.GetInt16(4);
+                clients.Add(client);
+            }
+            db.disconnect();
+            return clients;
+        }
+
         public static void insertClient(Client client)
         {
             db.connect();
@@ -342,11 +363,42 @@ namespace WebServices
         }
 
         /* Acceso a la tabla de facturas 'Bills' */
+        public static string selectBill(int billID)
+        {
+            string xml = "";
+            db.connect();
+            MySqlDataReader data = db.getData("SELECT xml FROM Bills WHERE Id = " + billID);
+            while (data.Read())
+                xml = data.GetString(0).Trim();
+            db.disconnect();
+            return xml;
+        }
+
+        public static List<ShortBill> selectBills(int amount, bool ascending)
+        {
+            List<ShortBill> bills = new List<ShortBill>();
+            db.connect();
+            MySqlDataReader data = db.getData("SELECT * FROM Bills ORDER BY Id " + (ascending ? "ASC" : "DESC") + " LIMIT 0," + (--amount));
+            while (data.Read())
+            {
+                ShortBill bill = new ShortBill();
+                bill.Id = data.GetInt16(0);
+                bill.TableID = data.GetInt16(1);
+                bill.Client = data.GetString(2);
+                bill.Date = DateTime.Parse(data.GetDateTime(3).ToString());
+                bill.Total = Convert.ToDouble(data.GetString(4).Trim());
+                bill.Paid = data.GetInt16(5);
+                bills.Add(bill);
+            }
+            db.disconnect();
+            return bills;
+        }
+
         public static int selectTableBill(int billID)
         {
             int tableID = 0;
             db.connect();
-            MySqlDataReader data = db.getData("SELECT tableID FROM Bills WHERE Id = " + billID);
+            MySqlDataReader data = db.getData("SELECT tableID FROM Bills WHERE Id = " + billID + " AND paid = 0");
             while (data.Read())
                 tableID = data.GetInt16(0);
             db.disconnect();
@@ -379,7 +431,7 @@ namespace WebServices
         {
             double amount = 0.0;
             db.connect();
-            MySqlDataReader data = db.getData("SELECT total FROM Bills WHERE tableID = " + tableID);
+            MySqlDataReader data = db.getData("SELECT total FROM Bills WHERE tableID = " + tableID + " AND paid = 0");
             while (data.Read())
                 amount = Convert.ToDouble(data.GetString(0).Trim());
             return amount;
@@ -401,13 +453,20 @@ namespace WebServices
             db.disconnect();
         }
 
+        public static void deleteUnpaidBills()
+        {
+            db.connect();
+            db.setData("DELETE FROM Bills WHERE paid = 0");
+            db.disconnect();
+        }
+
         /* Acceso a la tabla de direcciones 'Address' */
         public static void insertAddress(string nif, Address address)
         {
             db.connect();
             db.setData("INSERT INTO Address (nif, street, house, zipCode, town, state) VALUES ('" +
                 nif + "', '" + address.Street + "', '" + address.Number + "', " + address.ZipCode +
-                ", '" + address.Town + "', '" + address.Street + "')");
+                ", '" + address.Town + "', '" + address.State + "')");
             db.disconnect();
         }
 
@@ -429,14 +488,15 @@ namespace WebServices
         }
 
         /* Acceso a la tabla de restaurantes 'Restaurants' */
-        public static void insertRestaurant(Company company, double iva, double discount, int discountedVisit)
+        public static void insertRestaurant(Company company, int nBill, double iva, double discount, int discountedVisit, string currentRoom)
         {
             db.connect();
             db.setData("TRUNCATE TABLE Restaurants");
             db.setData("DELETE FROM Address WHERE nif = '" + company.NIF + "'");
             db.setData("INSERT INTO Restaurants (nif, name, phone, fax, mail, iva, discount, discountedVisit, nBill, serial, currentRoom) VALUES ('" +
                 company.NIF + "', '" + company.Name + "', " + company.Phone + ", " + company.Fax +
-                ", '" + company.Email + "', '" + iva + "', '" + discount + "', " + discountedVisit + ", 1, 1, 'none')");
+                ", '" + company.Email + "', '" + iva + "', '" + discount + "', " + discountedVisit + 
+                ", " + nBill + ", " + 1 + ", '" + currentRoom + "')");
             db.disconnect();
         }
 
@@ -551,16 +611,33 @@ namespace WebServices
             db.disconnect();
         }
 
-        public static List<HistoricalOrder> selectHistoricalOrders(string client)
+        public static List<HOrder> selectHOrders(int amount, bool ascending)
         {
-            List<HistoricalOrder> orders = new List<HistoricalOrder>();
+            List<HOrder> orders = new List<HOrder>();
+            db.connect();
+            MySqlDataReader data = db.getData("SELECT * FROM Historical ORDER BY date " + (ascending ? "ASC" : "DESC") + " LIMIT 0," + (--amount));
+            while (data.Read())
+            {
+                HOrder o = new HOrder();
+                o.Client = data.GetString(1).Trim();
+                o.Product = data.GetString(2).Trim();
+                o.Amount = data.GetInt32(3);
+                o.Date = DateTime.Parse(data.GetDateTime(4).ToString());
+                orders.Add(o);
+            }
+            return orders;
+        }
+
+        public static List<HOrder> selectHistoricalOrders(string client)
+        {
+            List<HOrder> orders = new List<HOrder>();
             db.connect();
             MySqlDataReader data;
             if (client.Equals("")) data = db.getData("SELECT * FROM Historical");
             else data = db.getData("SELECT * FROM Historical WHERE client = '" + client + "'");
             while (data.Read())
             {
-                HistoricalOrder o = new HistoricalOrder();
+                HOrder o = new HOrder();
                 o.Client = data.GetString(1).Trim();
                 o.Product = data.GetString(2).Trim();
                 o.Amount = data.GetInt32(3);

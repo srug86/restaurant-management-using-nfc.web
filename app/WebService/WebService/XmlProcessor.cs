@@ -12,6 +12,62 @@ namespace WebServices
         private const string header = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
 
         /* Métodos que construyen un XML a partir de objetos */
+        public static string xmlRestaurantDataBuilder(List<Object> data)
+        {
+            string xml = header + "\n<Restaurant>\n";
+            xml += "\t<Company>\n";
+            xml += "\t\t<NIF>" + ((Company)data[0]).NIF + "</NIF>\n";
+            xml += "\t\t<Name>" + ((Company)data[0]).Name + "</Name>\n";
+            xml += "\t\t<Phone>" + ((Company)data[0]).Phone + "</Phone>\n";
+            xml += "\t\t<Fax>" + ((Company)data[0]).Fax + "</Fax>\n";
+            xml += "\t\t<Email>" + ((Company)data[0]).Email + "</Email>\n";
+            xml += "\t</Company>\n";
+            xml += "\t<Address>\n";
+            xml += "\t\t<Street>" + ((Address)data[1]).Street + "</Street>\n";
+            xml += "\t\t<Number>" + ((Address)data[1]).Number + "</Number>\n";
+            xml += "\t\t<ZipCode>" + ((Address)data[1]).ZipCode + "</ZipCode>\n";
+            xml += "\t\t<Town>" + ((Address)data[1]).Town + "</Town>\n";
+            xml += "\t\t<State>" + ((Address)data[1]).State + "</State>\n";
+            xml += "\t</Address>\n";
+            xml += "\t<Rate iva=\"" + data[2] + "\" discount=\"" + data[3] + "\" discountedVisit=\"" + data[4] + "\"/>\n";
+            xml += "</Restaurant>";
+            return xml;
+        }
+
+        public static string xmlClientDataBuilder(Client client, Address address)
+        {
+            string xml = header + "\n<Profile>\n";
+            xml += "\t<DNI>" + client.Dni + "</DNI>\n";
+            xml += "\t<Name>" + client.Name + "</Name>\n";
+            xml += "\t<Surname>" + client.Surname + "</Surname>\n";
+            xml += "\t<Address>\n";
+            xml += "\t\t<Street>" + address.Street + "</Street>\n";
+            xml += "\t\t<Number>" + address.Number + "</Number>\n";
+            xml += "\t\t<ZipCode>" + address.ZipCode + "</ZipCode>\n";
+            xml += "\t\t<Town>" + address.Town + "</Town>\n";
+            xml += "\t<State>" + address.State + "</State>\n";
+            xml += "\t</Address>\n";
+            xml += "</Profile>";
+            return xml;
+        }
+
+        public static string xmlClientsDataBuilder(List<Client> clients)
+        {
+            string xml = header + "\n<Clients>\n";
+            if (clients.Count > 0)
+                foreach (Client client in clients)
+                {
+                    xml += "\t<Client dni=\"" + client.Dni + "\">\n";
+                    xml += "\t\t<Name>" + client.Name + "</Name>\n";
+                    xml += "\t\t<Surname>" + client.Surname + "</Surname>\n";
+                    xml += "\t\t<Appearances>" + client.Appearances + "</Appearances>\n";
+                    xml += "\t\t<Status>" + client.Status + "</Status>\n";
+                    xml += "\t</Client>\n";
+                }
+            xml += "</Clients>";
+            return xml;
+        }
+
         public static string xmlTablesStatusBuilder(List<Table> tables)
         {
             string xml = header + "\n<Tables>\n";
@@ -118,10 +174,10 @@ namespace WebServices
             return xml;
         }
 
-        public static string xmlHistoryBuilder(List<HistoricalOrder> orders)
+        public static string xmlHistoryBuilder(List<HOrder> orders)
         {
             string xml = header + "\n<Historical>\n";
-            foreach (HistoricalOrder order in orders)
+            foreach (HOrder order in orders)
             {
                 xml += "\t<Order>\n";
                 xml += "\t\t<Client>" + order.Client + "</Client>\n";
@@ -131,6 +187,24 @@ namespace WebServices
                 xml += "\t</Order>\n";
             }
             xml += "</Historical>";
+            return xml;
+        }
+
+        public static string xmlBillsBuilder(List<ShortBill> bills)
+        {
+            string xml = header + "\n<Bills>\n";
+            if (bills.Count > 0)
+                foreach (ShortBill bill in bills)
+                {
+                    xml += "\t<Bill id=\"" + bill.Id + "\">\n";
+                    xml += "\t\t<Table>" + bill.TableID + "</Table>\n";
+                    xml += "\t\t<Client>" + bill.Client + "</Client>\n";
+                    xml += "\t\t<Date>" + bill.Date.ToString() + "</Date>\n";
+                    xml += "\t\t<Total>" + bill.Total + "</Total>\n";
+                    xml += "\t\t<Paid>" + bill.Paid + "</Paid>\n";
+                    xml += "\t</Bill>\n";
+                }
+            xml += "</Bills>";
             return xml;
         }
 

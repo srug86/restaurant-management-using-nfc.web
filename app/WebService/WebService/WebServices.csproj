@@ -75,6 +75,7 @@
     <Compile Include="objects\Product.cs" />
     <Compile Include="objects\Recommendation.cs" />
     <Compile Include="objects\RecProduct.cs" />
+    <Compile Include="objects\ShortBill.cs" />
     <Compile Include="objects\Table.cs" />
     <Compile Include="DBProxy.cs" />
     <Compile Include="objects\Order.cs" />

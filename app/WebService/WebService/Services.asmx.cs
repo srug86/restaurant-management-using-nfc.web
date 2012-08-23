@@ -93,6 +93,7 @@ namespace WebServices
                 SqlProcessor.insertTable(table);
             }
             SqlProcessor.truncateOrders();  // se eliminan todos los pedidos existentes en la BD
+            SqlProcessor.deleteUnpaidBills(); // se eliminan las facturas generadas pero no pagadas
             SqlProcessor.deleteAnonymousClients();  // se eliminan los clientes anónimos (no usan NFC)
             SqlProcessor.resetClientsStatus();  // se cambia el estado de los demás clientes a 0 ('no está en el restaurante')
         }
@@ -106,20 +107,29 @@ namespace WebServices
         [WebMethod(Description = "Marca la factura y todos sus pedidos como 'pagados' y devuelve el estado actual de las mesas")]
         public string payBill(int billID, int type)
         {
-            SqlProcessor.updateBillStatus(billID, type);
             int tableID = SqlProcessor.selectTableBill(billID);
             string client = SqlProcessor.selectTable(tableID).Client;
-            SqlProcessor.updateClient(client, 2, -3);
-            foreach (Order o in SqlProcessor.selectTableOrders(tableID))
-            {
+            foreach (Order o in SqlProcessor.selectTableOrders(tableID, false))
                 SqlProcessor.updateOrder(o.Id, -3, 3, -3);
-                SqlProcessor.insertHistoricalOrder(client, o);  // los pedidos son añadidos al histórico
-            }
+            SqlProcessor.updateClient(client, 2, -3);
             SqlProcessor.updateTable(tableID, 3, "", -3);
+            SqlProcessor.updateBillStatus(billID, type);
             return XmlProcessor.xmlTablesStatusBuilder(SqlProcessor.selectAllTables());
         }
 
         /* Servicios propios del recibidor */
+        [WebMethod(Description = "Devuelve una cadena en formato XML con la información del cliente con dni 'dni'.")]
+        public string getClient(string dni)
+        {
+            return XmlProcessor.xmlClientDataBuilder(SqlProcessor.selectClient(dni), SqlProcessor.selectAddress(dni));
+        }
+
+        [WebMethod(Description = "Devuelve una cadena en formato XML con la lista de clientes del restaurante.")]
+        public string getClients()
+        {
+            return XmlProcessor.xmlClientsDataBuilder(SqlProcessor.selectClients());
+        }
+
         [WebMethod(Description = "Devuelve el estado almacenado del cliente con id 'clientID' y lo actualiza")]
         public int getClientStatus(string xmlClient)
         {
@@ -139,7 +149,7 @@ namespace WebServices
         public string getRecommendation(string client)
         {
             string restaurant = SqlProcessor.selectRestaurant().Name;
-            List<HistoricalOrder> clientHistory = SqlProcessor.selectHistoricalOrders(client);
+            List<HOrder> clientHistory = SqlProcessor.selectHistoricalOrders(client);
             List<Product> products = SqlProcessor.selectAllProducts(false);
             int appearances = SqlProcessor.selectClient(client).Appearances;
             double discount = SqlProcessor.selectDiscount();
@@ -151,6 +161,7 @@ namespace WebServices
         [WebMethod(Description = "Devuelve el total de la factura para la mesa 'tableID'")]
         public double getBillAmount(int tableID)
         {
+            getBill(tableID, false);    // Se genera la factura
             return SqlProcessor.selectBillAmount(tableID);
         }
 
@@ -187,13 +198,29 @@ namespace WebServices
 
         private void setDeallocation(string client, int tableID)
         {
+            List<Order> orders = SqlProcessor.selectTableOrders(tableID, true);
+            foreach (Order o in orders)
+                SqlProcessor.insertHistoricalOrder(client, o);  // los pedidos son añadidos al histórico
             SqlProcessor.updateClient(client, 0, -3); // status (cliente) == 0 (no está); -3 en apariciones no hace nada
             SqlProcessor.updateTable(tableID, -1, "", 0); // status (mesa) == -1 (libre)
             SqlProcessor.deleteTableOrders(tableID);
         }
 
+        [WebMethod(Description = "Devuelve una cadena en formato XML con los datos corporativos del restaurante")]
+        public string getRestaurant()
+        {
+            List<Object> loo = new List<Object>();
+            Company company = SqlProcessor.selectRestaurant();
+            loo.Add(company);
+            loo.Add(SqlProcessor.selectAddress(company.NIF));
+            loo.Add(SqlProcessor.selectIVA());
+            loo.Add(SqlProcessor.selectDiscount());
+            loo.Add(SqlProcessor.selectDiscountedVisit());
+            return XmlProcessor.xmlRestaurantDataBuilder(loo);
+        }
+
         [WebMethod(Description = "Inicializa los datos corporativos del restaurante")]
-        public void setRestaurantInfo(string xml)
+        public void saveRestaurant(string xml)
         {
             List<Object> info = XmlProcessor.xmlRestaurantDecoder(xml);
             Company c = (Company)info[0];
@@ -201,7 +228,7 @@ namespace WebServices
             double iva = (Double)info[2];
             double discount = (Double)info[3];
             int discountedVisit = (Int32)info[4];
-            SqlProcessor.insertRestaurant(c, iva, discount, discountedVisit);
+            SqlProcessor.insertRestaurant(c, SqlProcessor.selectNBill(), iva, discount, discountedVisit, SqlProcessor.selectRestaurantRoom());
             SqlProcessor.insertAddress(c.NIF, a);
         }
 
@@ -221,6 +248,18 @@ namespace WebServices
             return XmlProcessor.xmlProductsBuilder(SqlProcessor.selectAllProducts(nonVisible));
         }
 
+        [WebMethod(Description = "Devuelve una cadena en formato XML con la lista de facturas almacenada en la BD")]
+        public string getBills(int amount, bool ascending)
+        {
+            return XmlProcessor.xmlBillsBuilder(SqlProcessor.selectBills(amount, ascending));
+        }
+
+        [WebMethod(Description = "Devuelve una cadena en formato XML con la lista del historial de pedidos almacenada en la BD")]
+        public string getHOrders(int amount, bool ascending)
+        {
+            return XmlProcessor.xmlHistoryBuilder(SqlProcessor.selectHOrders(amount, ascending));
+        }
+
         [WebMethod(Description = "Devuelve una cadena en formato XML con la lista de pedidos almacenados en la BD")]
         public string getOrdersStatus()
         {
@@ -231,7 +270,7 @@ namespace WebServices
         public string getTableStatus(int tableID)
         {
             string dni = SqlProcessor.selectTable(tableID).Client;
-            return XmlProcessor.xmlTableStatusBuilder(SqlProcessor.selectTable(tableID), SqlProcessor.selectClient(dni), SqlProcessor.selectTableOrders(tableID));
+            return XmlProcessor.xmlTableStatusBuilder(SqlProcessor.selectTable(tableID), SqlProcessor.selectClient(dni), SqlProcessor.selectTableOrders(tableID, true));
         }
 
         [WebMethod(Description = "Añade un pedido (en formato XML) a la lista de pedidos de la BD")]
@@ -266,42 +305,51 @@ namespace WebServices
             return XmlProcessor.xmlTablesStatusBuilder(SqlProcessor.selectAllTables());
         }
 
+        [WebMethod(Description = "Devuelve la factura con identificador 'billID' en formato XML")]
+        public string getStaticBill(int billID)
+        {
+            return SqlProcessor.selectBill(billID);
+        }
+
         [WebMethod(Description = "Calcula la factura de una mesa y la devuelve en formato XML")]
         public string getBill(int tableID, bool _short)
         {
-            string xmlBill = "";
-            if (_short)
+            if (_short) return XmlProcessor.xmlShortBillBuilder(generateBill(tableID));
+            string xmlBill = SqlProcessor.selectBillTable(tableID); // busca la factura no pagada de la mesa 'tableID'
+            if (!xmlBill.Equals("")) return xmlBill;    // si la hay, la devuelve
+            Bill bill = generateBill(tableID);  // si no, la calcula
+            xmlBill = SqlProcessor.selectBill(bill.Id); // mira si está con las facturas pagadas
+            if (!xmlBill.Equals("")) return xmlBill;    // si la encuentra, la devuelve
+            xmlBill = XmlProcessor.xmlBillBuilder(bill);    // si no, genera el xml
+            if (bill.Total > 0) // Para evitar almacenar basura
             {
-                Bill bill = generateBill(tableID);
-                xmlBill = XmlProcessor.xmlShortBillBuilder(bill);
+                SqlProcessor.insertBill(bill, xmlBill);     // y lo almacena con el resto de facturas
+                SqlProcessor.increaseNBill();   // incrementa el número de serie de las facturas
             }
-            else
-            {
-                xmlBill = SqlProcessor.selectBillTable(tableID);
-                if (xmlBill == "")
-                {
-                    Bill bill = generateBill(tableID);
-                    SqlProcessor.increaseNBill();
-                    xmlBill = XmlProcessor.xmlBillBuilder(bill);
-                    SqlProcessor.insertBill(bill, xmlBill);
-                }
-            }
-            return xmlBill;
+            return xmlBill; // y devuelve el xml de la factura calculada
         }
 
         private void recalculateTablesStatus()
         {
             foreach (Table table in SqlProcessor.selectAllTables())
             {
-                if (table.Status >= 0 && table.Status < 3)
+                //if (table.Status >= 0 && table.Status < 3)
+                if (table.Status >= 0)
                 {
-                    List<Order> orders = SqlProcessor.selectTableOrders(table.Id);
+                    List<Order> orders = SqlProcessor.selectTableOrders(table.Id, true);
                     if (orders.Count > 0)
                     {
-                        table.Status = 2;
+                        table.Status = 3;
                         foreach (Order order in orders)
+                        {
                             if (order.Status == 0 || order.Status == 1)
+                            {
                                 table.Status = 1;
+                                break;
+                            }
+                            else if (order.Status == 2)
+                                table.Status = 2;
+                        }
                     }
                     else table.Status = 0;
                 }
@@ -326,7 +374,8 @@ namespace WebServices
             else bill.Discount = 0.0;
             bill.Id = SqlProcessor.selectNBill();
             bill.Serial = SqlProcessor.selectSerial();
-            List<Order> orders = SqlProcessor.selectTableOrders(tableID);
+            bill.Paid = 0;
+            List<Order> orders = SqlProcessor.selectTableOrders(tableID, true);
             foreach (Order order in orders)
             {
                 OrderPrice oPrice = new OrderPrice();
