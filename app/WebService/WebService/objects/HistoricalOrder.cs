@@ -5,7 +5,7 @@ using System.Web;
 
 namespace WebServices.objects
 {
-    public class HistoricalOrder
+    public class HOrder
     {
         private String client, product;
 
@@ -37,6 +37,6 @@ namespace WebServices.objects
             set { date = value; }
         }
 
-        public HistoricalOrder() { }
+        public HOrder() { }
     }
 }

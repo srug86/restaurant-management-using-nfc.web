@@ -8,7 +8,7 @@ namespace WebServices
 {
     public class Recommender
     {
-        public static Recommendation generateRecommendation(List<Product> products, List<HistoricalOrder> clientHistory, 
+        public static Recommendation generateRecommendation(List<Product> products, List<HOrder> clientHistory, 
             string restaurant, int appearances, double discount, int discountedVisit)
         {
             Recommendation rec = new Recommendation();
@@ -27,7 +27,7 @@ namespace WebServices
             else xml += "Gracias por utilizar el servicio NFC.\nEs su visita numero " + (app + 1) + ".\n";
             if (discV != 0 && disc != 0.0)
             {
-                if (app % discV == 0 && app > 0) xml += "Dispone de un descuento final en su factura del " + disc + "%.";
+                if ((app + 1) % discV == 0 && app > 0) xml += "Dispone de un descuento final en su factura del " + disc + "%.";
                 else xml += "La factura de la visita " + ((int)(app / discV) + 1) * discV + " dispondra de un descuento en su factura del " + disc + "%.";
             }
             return xml;
@@ -52,10 +52,10 @@ namespace WebServices
             return mostUsual;
         }
 
-        private static List<RecProduct> generateListOfUsualProducts(List<Product> products, List<HistoricalOrder> clientHistory)
+        private static List<RecProduct> generateListOfUsualProducts(List<Product> products, List<HOrder> clientHistory)
         {
             List<RecProduct> usual = new List<RecProduct>();
-            foreach (HistoricalOrder order in clientHistory)
+            foreach (HOrder order in clientHistory)
             {
                 int i = usual.IndexOf(new RecProduct(order.Product));
                 if (i == -1)
