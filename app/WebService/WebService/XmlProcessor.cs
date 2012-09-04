@@ -12,6 +12,7 @@ namespace WebServices
         private const string header = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
 
         /* Métodos que construyen un XML a partir de objetos */
+        // Construye XML con la información del restaurante
         public static string xmlRestaurantDataBuilder(List<Object> data)
         {
             string xml = header + "\n<Restaurant>\n";
@@ -34,6 +35,7 @@ namespace WebServices
             return xml;
         }
 
+        // Construye XML con el perfil de un cliente
         public static string xmlClientDataBuilder(Client client, Address address)
         {
             string xml = header + "\n<Profile>\n";
@@ -51,6 +53,7 @@ namespace WebServices
             return xml;
         }
 
+        // Construye XML con los datos de un cliente
         public static string xmlClientsDataBuilder(List<Client> clients)
         {
             string xml = header + "\n<Clients>\n";
@@ -68,6 +71,7 @@ namespace WebServices
             return xml;
         }
 
+        // Construye XML con el estado de las mesas del restaurante
         public static string xmlTablesStatusBuilder(List<Table> tables)
         {
             string xml = header + "\n<Tables>\n";
@@ -84,6 +88,7 @@ namespace WebServices
             return xml;
         }
 
+        // Construye XML con el estado de los pedidos
         public static string xmlOrdersStatusBuilder(List<Order> orders)
         {
             string xml = header + "\n<Orders>\n";
@@ -104,6 +109,7 @@ namespace WebServices
             return xml;
         }
 
+        // Construye XML con la lista de productos del restaurante
         public static string xmlProductsBuilder(List<Product> products)
         {
             string xml = header + "\n<Products>\n";
@@ -123,6 +129,7 @@ namespace WebServices
             return xml;
         }
 
+        // Construye XML con la lista de plantillas del restaurante
         public static string xmlRoomsBuilder(List<Room> rooms)
         {
             string xml = header + "\n<Rooms>\n";
@@ -140,6 +147,7 @@ namespace WebServices
             return xml;
         }
 
+        // Construye XML con el estado de una mesa
         public static string xmlTableStatusBuilder(Table table, Client client, List<Order> orders)
         {
             string xml = header + "\n<TableInf>\n";
@@ -174,10 +182,11 @@ namespace WebServices
             return xml;
         }
 
-        public static string xmlHistoryBuilder(List<HOrder> orders)
+        // Construye XML con la lista de pedidos históricos
+        public static string xmlHistoryBuilder(List<HistoricalOrder> orders)
         {
             string xml = header + "\n<Historical>\n";
-            foreach (HOrder order in orders)
+            foreach (HistoricalOrder order in orders)
             {
                 xml += "\t<Order>\n";
                 xml += "\t\t<Client>" + order.Client + "</Client>\n";
@@ -190,6 +199,7 @@ namespace WebServices
             return xml;
         }
 
+        // Construye XML con la lista de facturas históricas
         public static string xmlBillsBuilder(List<ShortBill> bills)
         {
             string xml = header + "\n<Bills>\n";
@@ -208,6 +218,7 @@ namespace WebServices
             return xml;
         }
 
+        // Construye XML con la información detallada de una factura
         public static string xmlBillBuilder(Bill bill)
         {
             string xml = header + "\n<Bill>\n";
@@ -269,6 +280,7 @@ namespace WebServices
             return xml;
         }
 
+        // Construye XML con la información resumida de una factura
         public static string xmlShortBillBuilder(Bill bill)
         {
             string xml = header + "<Bill>\n";
@@ -307,6 +319,7 @@ namespace WebServices
             return xml;
         }
 
+        // Construye XML con las recomendaciones para un cliente
         public static string xmlRecommendationBuilder(Recommendation rec)
         {
             string xml = header + "\n<Recommendations>\n";
@@ -346,6 +359,7 @@ namespace WebServices
         }
 
         /* Métodos que construyen objetos a partir de un XML */
+        // Decodifica XML con la información del restaurante
         public static List<Object> xmlRestaurantDecoder(string sXml)
         {
             List<Object> objects = new List<Object>();
@@ -393,6 +407,7 @@ namespace WebServices
             return objects;
         }
 
+        // Decodifica XML con la información del perfil de un cliente
         public static List<Object> xmlClientDecoder(string sXml)
         {
             List<Object> clientData = new List<Object>();
@@ -423,6 +438,7 @@ namespace WebServices
             return clientData;
         }
 
+        // Decodifica XML de una lista de pedidos
         public static List<Order> xmlOrdersDecoder(string sXml)
         {
             List<Order> loo = new List<Order>();
@@ -452,6 +468,7 @@ namespace WebServices
             return loo;
         }
 
+        // Decodifica XML de una lista de productos
         public static List<Product> xmlProductsDecoder(string sXml)
         {
             List<Product> productsL = new List<Product>();
@@ -480,6 +497,7 @@ namespace WebServices
             return productsL;
         }
 
+        // Decodifica XML con la descripción de una nueva plantilla para el restaurante
         public static Room xmlAddRoomDecoder(string sXml)
         {
             Room roomDef = new Room();
@@ -501,6 +519,7 @@ namespace WebServices
             return roomDef;
         }
 
+        // Decodifica XML con la información de las mesas del restaurante
         public static List<Table> xmlRoomTablesDecoder(string sXml)
         {
             List<Table> tablesDef = new List<Table>();

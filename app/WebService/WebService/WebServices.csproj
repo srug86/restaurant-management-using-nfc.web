@@ -69,9 +69,12 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="objects\Address.cs" />
     <Compile Include="objects\Bill.cs" />
     <Compile Include="objects\Client.cs" />
+    <Compile Include="objects\Company.cs" />
     <Compile Include="objects\HistoricalOrder.cs" />
+    <Compile Include="objects\OrderPrice.cs" />
     <Compile Include="objects\Product.cs" />
     <Compile Include="objects\Recommendation.cs" />
     <Compile Include="objects\RecProduct.cs" />

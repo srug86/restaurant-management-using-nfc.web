@@ -12,6 +12,7 @@ namespace WebServices
         private static DBProxy db = DBProxy.Instance;
 
         /* Acceso a la tabla de comedores 'Rooms' */
+        // Añade una nueva plantilla en la tabla 'Rooms'
         public static void insertRoom(Room room)
         {
             db.connect();
@@ -21,6 +22,7 @@ namespace WebServices
             db.disconnect();
         }
 
+        // Elimina la plantilla con nombre 'name' de la tabla 'Rooms'
         public static void deleteRoom(string name)
         {
             db.connect();
@@ -28,6 +30,7 @@ namespace WebServices
             db.disconnect();
         }
 
+        // Devuelve la plantilla de nombre 'name'
         public static Room selectRoom(string name)
         {
             Room room = new Room();
@@ -46,6 +49,7 @@ namespace WebServices
             return room;
         }
 
+        // Devuelve la información de todas las plantillas almacenadas en 'Rooms'
         public static List<Room> selectAllRooms()
         {
             List<Room> rooms = new List<Room>();
@@ -67,6 +71,7 @@ namespace WebServices
         }
 
         /* Acceso a la tabla de productos 'Products' */
+        // Añade un nuevo producto a la tabla 'Products
         public static void insertProduct(Product product)
         {
             db.connect();
@@ -77,6 +82,7 @@ namespace WebServices
             db.disconnect();
         }
 
+        // Devuelve la información del producto 'name'
         public static Product selectProduct(string name)
         {
             Product product = new Product();
@@ -96,12 +102,13 @@ namespace WebServices
             return product;
         }
 
+        // Devuelve la lista de productos almacenados en 'Products'
         public static List<Product> selectAllProducts(bool nonVisible)
         {
             List<Product> products = new List<Product>();
             db.connect();
             MySqlDataReader data;
-            if (nonVisible)
+            if (nonVisible) // También los productos "no visibles"
                 data = db.getData("SELECT * FROM Products");
             else
                 data = db.getData("SELECT * FROM Products WHERE visible = 1");
@@ -121,6 +128,7 @@ namespace WebServices
             return products;
         }
 
+        // Vacía todos los elementos de la tabla 'Products'
         public static void truncateProducts()
         {
             db.connect();
@@ -129,6 +137,7 @@ namespace WebServices
         }
 
         /* Acceso a la tabla de pedidos 'Orders' */
+        // Añade un nuevo pedido a la tabla 'Orders'
         public static void insertOrder(Order order)
         {
             db.connect();
@@ -138,6 +147,7 @@ namespace WebServices
             db.disconnect();
         }
 
+        // Actualiza la información de un pedido
         public static void updateOrder(int orderID, int amount, int status, int tableID)
         {
             db.connect();
@@ -145,21 +155,23 @@ namespace WebServices
                 db.setData("UPDATE Orders SET amount = " + amount + " WHERE Id = " + orderID);
             if (status != -3)   // hay actualización de estado
             {
-                if (status == -2)
+                if (status == -2)   // elimina pedido
                     db.setData("DELETE FROM Orders WHERE Id = " + orderID);
                 else
                     db.setData("UPDATE Orders SET status = " + status + " WHERE Id = " + orderID);
             }
-            if (tableID != -3)
+            if (tableID != -3)  // hay actualización de mesa
                 db.setData("UPDATE Orders SET tableID = " + tableID + " WHERE Id = " + orderID);
             db.disconnect();
         }
 
+        // Devuelve la lista de pedidos de la mesa 'tableID'
         public static List<Order> selectTableOrders(int tableID, bool all)
         {
             List<Order> orders = new List<Order>();
             db.connect();
             string command = "SELECT * FROM Orders WHERE tableID = " + tableID;
+            // Si all = false, no devuelve pedidos cobrados o detenidos
             command += all ? "" : " AND status <> -1 AND status <> 3";
             MySqlDataReader data = db.getData(command);
             while (data.Read())
@@ -177,6 +189,7 @@ namespace WebServices
             return orders;
         }
 
+        // Devuelve todos los pedidos de la tabla 'Orders'
         public static List<Order> selectAllOrders()
         {
             List<Order> orders = new List<Order>();
@@ -197,6 +210,7 @@ namespace WebServices
             return orders;
         }
 
+        // Elimina los pedidos de la mesa 'tableID'
         public static void deleteTableOrders(int tableID)
         {
             db.connect();
@@ -204,6 +218,7 @@ namespace WebServices
             db.disconnect();
         }
 
+        // Vacía todos los elementos del tabla 'Orders'
         public static void truncateOrders()
         {
             db.connect();
@@ -212,6 +227,7 @@ namespace WebServices
         }
 
         /* Acceso a la tabla de clientes 'Clients' */
+        // Devuelve la lista de clientes de la tabla 'Clients'
         public static List<Client> selectClients()
         {
             List<Client> clients = new List<Client>();
@@ -231,6 +247,7 @@ namespace WebServices
             return clients;
         }
 
+        // Añade un nuevo cliente a la tabla 'Clients'
         public static void insertClient(Client client)
         {
             db.connect();
@@ -240,16 +257,18 @@ namespace WebServices
             db.disconnect();
         }
 
+        // Actualiza la información del cliente 'dni'
         public static void updateClient(string dni, int status, int appearances)
         {
             db.connect();
-            if (status != -3)
+            if (status != -3)   // Actualiza el estado del cliente
                 db.setData("UPDATE Clients SET status = " + status + " WHERE dni = '" + dni + "'");
-            if (appearances != -3)
+            if (appearances != -3)  // Actualiza el número de apariciones
                 db.setData("UPDATE Clients SET appearances = " + appearances + " WHERE dni = '" + dni + "'");
             db.disconnect();
         }
 
+        // Devuelve la información del cliente 'dni'
         public static Client selectClient(string dni)
         {
             Client client = new Client();
@@ -267,6 +286,7 @@ namespace WebServices
             return client;
         }
 
+        // Elimina a todos los clientes (no NFC)
         public static void deleteAnonymousClients()
         {
             db.connect();
@@ -274,6 +294,7 @@ namespace WebServices
             db.disconnect();
         }
 
+        // 'Resetea' el estado de los clientes a "No está"
         public static void resetClientsStatus()
         {
             db.connect();
@@ -282,6 +303,7 @@ namespace WebServices
         }
 
         /* Acceso a la tabla de mesas 'Tables' */
+        // Añade una nueva mesa a la tabla 'Tables'
         public static void insertTable(Table table)
         {
             db.connect();
@@ -291,18 +313,20 @@ namespace WebServices
             db.disconnect();
         }
 
+        // Actualiza la información de la mesa 'tableID'
         public static void updateTable(int tableID, int status, string client, int guests)
         {
             db.connect();
-            if (status != -3)
+            if (status != -3)   // Actualiza el estado de la mesa
                 db.setData("UPDATE Tables SET status = " + status + " WHERE Id = " + tableID);
-            if (client != "")
+            if (client != "")   // Actualiza el cliente de la mesa
                 db.setData("UPDATE Tables SET client = '" + client + "' WHERE Id = " + tableID);
-            if (guests != -3)
+            if (guests != -3)   // Actualiza el número de comensales de la mesa
                 db.setData("UPDATE Tables SET guests = " + guests + " WHERE Id = " + tableID);
             db.disconnect();
         }
 
+        // Devuelve la información de la mesa 'tableID'
         public static Table selectTable(int tableID)
         {
             db.connect();
@@ -311,6 +335,7 @@ namespace WebServices
             return table;
         }
 
+        // Devuelve la información de la mesa que ocupa el cliente 'client'
         public static Table selectTable(string client)
         {
             db.connect();
@@ -319,6 +344,7 @@ namespace WebServices
             return table;
         }
 
+        // Método auxiliar de los anteriores que devuelve la información de una mesa
         private static Table selectTableAux(string sql)
         {
             Table table = new Table();
@@ -336,6 +362,7 @@ namespace WebServices
             return table;
         }
 
+        // Devuelve la lista de las mesas de la tabla 'Tables'
         public static List<Table> selectAllTables()
         {
             List<Table> tables = new List<Table>();
@@ -355,6 +382,7 @@ namespace WebServices
             return tables;
         }
 
+        // Elimina todos los elementos de la tabla 'Tables'
         public static void truncateTables()
         {
             db.connect();
@@ -363,6 +391,7 @@ namespace WebServices
         }
 
         /* Acceso a la tabla de facturas 'Bills' */
+        // Devuelve la descripción de la factura 'billID'
         public static string selectBill(int billID)
         {
             string xml = "";
@@ -374,10 +403,12 @@ namespace WebServices
             return xml;
         }
 
+        // Devuelve la lista de facturas resumidas del historial de facturas
         public static List<ShortBill> selectBills(int amount, bool ascending)
         {
             List<ShortBill> bills = new List<ShortBill>();
             db.connect();
+            // 'amount' indica la cantidad de elementos y 'ascending' el orden de búsqueda (ascendente o descendente)
             MySqlDataReader data = db.getData("SELECT * FROM Bills ORDER BY Id " + (ascending ? "ASC" : "DESC") + " LIMIT 0," + (--amount));
             while (data.Read())
             {
@@ -394,6 +425,7 @@ namespace WebServices
             return bills;
         }
 
+        // Devuelve la mesa asociada a la factura (no pagada) 'billID'
         public static int selectTableBill(int billID)
         {
             int tableID = 0;
@@ -405,6 +437,7 @@ namespace WebServices
             return tableID;
         }
 
+        // Devuelve la descripción de la factura (no pagada) asociada a la mesa 'tableID'
         public static string selectBillTable(int tableID)
         {
             string xml = "";
@@ -416,6 +449,7 @@ namespace WebServices
             return xml;
         }
 
+        // Devuelve el identificador de la factura (no pagada) asociada a la mesa 'tableID'
         public static int selectBillID(int tableID)
         {
             int id = 0;
@@ -427,6 +461,7 @@ namespace WebServices
             return id;
         }
 
+        // Devuelve el importe total de la factura (no pagada) asociada a la mesa 'tableID'
         public static double selectBillAmount(int tableID)
         {
             double amount = 0.0;
@@ -437,6 +472,7 @@ namespace WebServices
             return amount;
         }
 
+        // Añade una nueva factura a la tabla 'Bills'
         public static void insertBill(Bill bill, string xml)
         {
             db.connect();
@@ -446,6 +482,7 @@ namespace WebServices
             db.disconnect();
         }
 
+        // Actualiza el estado de la factura 'billID'
         public static void updateBillStatus(int billID, int type)
         {
             db.connect();
@@ -453,6 +490,7 @@ namespace WebServices
             db.disconnect();
         }
 
+        // Elimina las facturas no pagadas
         public static void deleteUnpaidBills()
         {
             db.connect();
@@ -461,6 +499,7 @@ namespace WebServices
         }
 
         /* Acceso a la tabla de direcciones 'Address' */
+        // Añade una nueva dirección a la tabla 'Address'
         public static void insertAddress(string nif, Address address)
         {
             db.connect();
@@ -470,6 +509,7 @@ namespace WebServices
             db.disconnect();
         }
 
+        // Devuelve la dirección del cliente (o empresa) 'nif'
         public static Address selectAddress(string nif)
         {
             Address address = new Address();
@@ -488,6 +528,7 @@ namespace WebServices
         }
 
         /* Acceso a la tabla de restaurantes 'Restaurants' */
+        // Almacena la información actualizada del restaurante
         public static void insertRestaurant(Company company, int nBill, double iva, double discount, int discountedVisit, string currentRoom)
         {
             db.connect();
@@ -500,6 +541,7 @@ namespace WebServices
             db.disconnect();
         }
 
+        // Devuelve la información principal de la empresa
         public static Company selectRestaurant()
         {
             Company company = new Company();
@@ -517,6 +559,7 @@ namespace WebServices
             return company;
         }
 
+        // Devuelve el valor del IVA actual
         public static double selectIVA()
         {
             double iva = 0.0;
@@ -528,6 +571,7 @@ namespace WebServices
             return iva;
         }
 
+        // Devuelve el número de visitas necesarias para la aplicación de un descuento
         public static int selectDiscountedVisit()
         {
             int visits = 0;
@@ -539,6 +583,7 @@ namespace WebServices
             return visits;
         }
 
+        // Devuelve el valor del descuento por fidelidad
         public static double selectDiscount()
         {
             double discount = 0.0;
@@ -550,6 +595,7 @@ namespace WebServices
             return discount;
         }
 
+        // Devuelve el número de la última factura
         public static int selectNBill()
         {
             int nBill = 1;
@@ -560,6 +606,7 @@ namespace WebServices
             return nBill;
         }
 
+        // Incrementa el número de factura
         public static void increaseNBill()
         {
             db.connect();
@@ -567,6 +614,7 @@ namespace WebServices
             db.disconnect();
         }
 
+        // Devuelve el valor del número de serie de las facturas
         public static int selectSerial()
         {
             int serial = 1;
@@ -577,6 +625,7 @@ namespace WebServices
             return serial;
         }
 
+        // Incrementa el número de serie de las facturas
         public static void increaseSerial()
         {
             db.connect();
@@ -584,6 +633,7 @@ namespace WebServices
             db.disconnect();
         }
 
+        // Devuelve el nombre de la plantilla de la jornada actual
         public static string selectRestaurantRoom()
         {
             string room = "none";
@@ -595,6 +645,7 @@ namespace WebServices
             return room;
         }
 
+        // Almacena el nombre de la plantilla de la jornada actual
         public static void saveCurrentRoom(string room)
         {
             db.connect();
@@ -603,6 +654,7 @@ namespace WebServices
         }
 
         /* Acceso a la tabla del historial de pedidos 'Historical' */
+        // Añade un nuevo pedido al histórico de pedidos
         public static void insertHistoricalOrder(string client, Order order)
         {
             db.connect();
@@ -611,14 +663,16 @@ namespace WebServices
             db.disconnect();
         }
 
-        public static List<HOrder> selectHOrders(int amount, bool ascending)
+        // Devuelve la lista de pedidos históricos de la tabla 'Historical'
+        public static List<HistoricalOrder> selectHOrders(int amount, bool ascending)
         {
-            List<HOrder> orders = new List<HOrder>();
+            List<HistoricalOrder> orders = new List<HistoricalOrder>();
             db.connect();
+            // 'amount' indica la cantidad de elementos y 'ascending' el orden de búsqueda (ascendente o descendente)
             MySqlDataReader data = db.getData("SELECT * FROM Historical ORDER BY date " + (ascending ? "ASC" : "DESC") + " LIMIT 0," + (--amount));
             while (data.Read())
             {
-                HOrder o = new HOrder();
+                HistoricalOrder o = new HistoricalOrder();
                 o.Client = data.GetString(1).Trim();
                 o.Product = data.GetString(2).Trim();
                 o.Amount = data.GetInt32(3);
@@ -628,16 +682,17 @@ namespace WebServices
             return orders;
         }
 
-        public static List<HOrder> selectHistoricalOrders(string client)
+        // Devuelve el histórico de pedidos del cliente 'client'
+        public static List<HistoricalOrder> selectHistoricalOrders(string client)
         {
-            List<HOrder> orders = new List<HOrder>();
+            List<HistoricalOrder> orders = new List<HistoricalOrder>();
             db.connect();
             MySqlDataReader data;
             if (client.Equals("")) data = db.getData("SELECT * FROM Historical");
             else data = db.getData("SELECT * FROM Historical WHERE client = '" + client + "'");
             while (data.Read())
             {
-                HOrder o = new HOrder();
+                HistoricalOrder o = new HistoricalOrder();
                 o.Client = data.GetString(1).Trim();
                 o.Product = data.GetString(2).Trim();
                 o.Amount = data.GetInt32(3);
@@ -648,6 +703,7 @@ namespace WebServices
         }
 
         /* Operaciones auxiliares */
+        // Vacía el contenido de todas las tablas de la BD
         public static void truncateDB()
         {
             db.connect();
@@ -662,6 +718,7 @@ namespace WebServices
             db.disconnect();
         }
 
+        // Normaliza el tipo 'DateTime' de .NET al tipo 'Time' de MySQL
         public static string dateTime2MySqlDateTime(DateTime date)
         {
             return date.Year + "-" + date.Month + "-" + date.Day + " " + date.Hour + ":" + date.Minute + ":" + date.Second;

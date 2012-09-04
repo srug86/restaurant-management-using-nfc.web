@@ -8,7 +8,8 @@ namespace WebServices
 {
     public class Recommender
     {
-        public static Recommendation generateRecommendation(List<Product> products, List<HOrder> clientHistory, 
+        // Genera las recomendaciones para un cliente
+        public static Recommendation generateRecommendation(List<Product> products, List<HistoricalOrder> clientHistory, 
             string restaurant, int appearances, double discount, int discountedVisit)
         {
             Recommendation rec = new Recommendation();
@@ -20,6 +21,7 @@ namespace WebServices
             return rec;
         }
 
+        // Calcula el mensaje de bienvenida de la recomendación
         private static string generateOpening(string restaurant, int app, double disc, int discV)
         {
             string xml = "Bienvenido al restaurante \"" + restaurant + "\"\n";
@@ -33,6 +35,7 @@ namespace WebServices
             return xml;
         }
 
+        // Devuelve una lista con el producto más consumido de cada categoría
         private static List<RecProduct> getMostConsumedProducts(List<RecProduct> usual)
         {
             List<RecProduct> mostUsual = new List<RecProduct>();
@@ -52,10 +55,11 @@ namespace WebServices
             return mostUsual;
         }
 
-        private static List<RecProduct> generateListOfUsualProducts(List<Product> products, List<HOrder> clientHistory)
+        // Devuelve una lista con los productos consumidos por el cliente y el número de veces de cada uno
+        private static List<RecProduct> generateListOfUsualProducts(List<Product> products, List<HistoricalOrder> clientHistory)
         {
             List<RecProduct> usual = new List<RecProduct>();
-            foreach (HOrder order in clientHistory)
+            foreach (HistoricalOrder order in clientHistory)
             {
                 int i = usual.IndexOf(new RecProduct(order.Product));
                 if (i == -1)
@@ -86,6 +90,7 @@ namespace WebServices
             return usual;
         }
 
+        // Devuelve una lista con las categorías de los productos consumidos por un cliente
         private static List<string> getProductCategories(List<RecProduct> products)
         {
             List<string> categories = new List<string>();
@@ -95,6 +100,7 @@ namespace WebServices
             return categories;
         }
 
+        // Devuelve una lista con los productos que tienen algún tipo de descuento
         private static List<RecProduct> generateListOfPromotionalProducts(List<Product> products)
         {
             List<RecProduct> promotional = new List<RecProduct>();
@@ -109,6 +115,7 @@ namespace WebServices
             return promotional;
         }
 
+        // Devuelve una lista con los productos recomendados para un cliente según los productos más consumidos
         private static List<RecProduct> generateListOfRecommendedProducts(List<Product> products, List<RecProduct> mostUsual)
         {
             List<RecProduct> recommended = new List<RecProduct>();
@@ -117,7 +124,7 @@ namespace WebServices
                 int similarity = 0, p = -1;
                 if (mUP.Description != null)
                 {
-                    string[] keys = mUP.Description.Split(',');
+                    string[] keys = mUP.Description.Split(','); // lista de palabras clave para el producto
                     for (int i = 0; i < products.Count; i++)
                     {
                         int auxSimil = 0;
@@ -125,9 +132,9 @@ namespace WebServices
                             !products[i].Name.Equals(mUP.Name))
                         {
                             foreach (string key in products[i].Description.Split(','))
-                                if (keys.Contains(key))
+                                if (keys.Contains(key)) // si coincide alguna de las palabras clave se incrementa la similitud
                                     auxSimil++;
-                            if (auxSimil > similarity)
+                            if (auxSimil > similarity)  // el producto actual es más similar que el almacenado
                             {
                                 similarity = auxSimil;
                                 p = i;
