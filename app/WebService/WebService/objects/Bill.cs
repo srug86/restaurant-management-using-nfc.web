@@ -5,10 +5,12 @@ using System.Web;
 
 namespace WebServices.objects
 {
+    // 'Bill' describe la información de una factura
     public class Bill
     {
+        /* Atributos del objeto */
+        // Información de la compañía
         private Company companyInfo;
-
         public Company CompanyInfo
         {
             get { return companyInfo; }
@@ -16,21 +18,21 @@ namespace WebServices.objects
         }
 
         private Address companyAddress, clientAddress;
-
+        // Dirección de la compañía
         public Address CompanyAddress
         {
             get { return companyAddress; }
             set { companyAddress = value; }
         }
-
+        // Dirección del cliente
         public Address ClientAddress
         {
             get { return clientAddress; }
             set { clientAddress = value; }
         }
 
+        // Información del cliente
         private Client clientInfo;
-
         internal Client ClientInfo
         {
             get { return clientInfo; }
@@ -38,33 +40,33 @@ namespace WebServices.objects
         }
 
         private int id, tableID, serial, paid;
-
+        // Identificador de la factura
         public int Id
         {
             get { return id; }
             set { id = value; }
         }
-
+        // Mesa facturada
         public int TableID
         {
             get { return tableID; }
             set { tableID = value; }
         }
-
+        // Número de serie de la factura
         public int Serial
         {
             get { return serial; }
             set { serial = value; }
         }
-
+        // Método de pago: (0) No cobrada, (1) Cobro normal, (2) Cobro NFC
         public int Paid
         {
             get { return paid; }
             set { paid = value; }
         }
 
+        // Fecha de facturación
         private DateTime date;
-
         public DateTime Date
         {
             get { return date; }
@@ -72,166 +74,56 @@ namespace WebServices.objects
         }
 
         private double iva, discount, taxBase, quote, subtotal, total;
-
+        // IVA
         public double Iva
         {
             get { return iva; }
             set { iva = value; }
         }
-
+        // Descuento en el precio acumulado
         public double Discount
         {
             get { return discount; }
             set { discount = value; }
         }
-
+        // Base imponible
         public double TaxBase
         {
             get { return taxBase; }
             set { taxBase = value; }
         }
-
+        // Cuota
         public double Quote
         {
             get { return quote; }
             set { quote = value; }
         }
-
+        // Subtotal
         public double Subtotal
         {
             get { return subtotal; }
             set { subtotal = value; }
         }
-
+        // Total
         public double Total
         {
             get { return total; }
             set { total = value; }
         }
 
+        // Lista de pedidos
         private List<OrderPrice> orders;
-
         public List<OrderPrice> Orders
         {
             get { return orders; }
             set { orders = value; }
         }
 
+        // Método constructor
         public Bill() {
             Paid = 0;
             TaxBase = Total = Subtotal = Quote = 0;
             Orders = new List<OrderPrice>();
         }
-    }
-
-    public class Company
-    {
-        private string name, nif, email;
-
-        public string Name
-        {
-            get { return name; }
-            set { name = value; }
-        }
-
-        public string NIF
-        {
-            get { return nif; }
-            set { nif = value; }
-        }
-
-        public string Email
-        {
-            get { return email; }
-            set { email = value; }
-        }
-
-        private int phone, fax;
-
-        public int Phone
-        {
-            get { return phone; }
-            set { phone = value; }
-        }
-
-        public int Fax
-        {
-            get { return fax; }
-            set { fax = value; }
-        }
-
-        public Company() { }
-    }
-
-    public class Address
-    {
-        private string street, number, town, state;
-
-        public string Street
-        {
-            get { return street; }
-            set { street = value; }
-        }
-
-        public string Number
-        {
-            get { return number; }
-            set { number = value; }
-        }
-
-        public string Town
-        {
-            get { return town; }
-            set { town = value; }
-        }
-
-        public string State
-        {
-            get { return state; }
-            set { state = value; }
-        }
-
-        private int zipCode;
-
-        public int ZipCode
-        {
-            get { return zipCode; }
-            set { zipCode = value; }
-        }
-
-        public Address() { }
-    }
-
-    public class OrderPrice
-    {
-        private Order order;
-
-        internal Order Order
-        {
-          get { return order; }
-          set { order = value; }
-        }
-
-        private double price, discount, total;
-
-        public double Price
-        {
-          get { return price; }
-          set { price = value; }
-        }
-
-        public double Discount
-        {
-          get { return discount; }
-          set { discount = value; }
-        }
-
-        public double Total
-        {
-          get { return total; }
-          set { total = value; }
-        }
-
-        public OrderPrice() { }
     }
 }

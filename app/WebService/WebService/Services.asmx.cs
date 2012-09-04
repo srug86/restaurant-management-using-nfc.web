@@ -8,15 +8,10 @@ using WebServices.objects;
 
 namespace WebServices
 {
-    /// <summary>
-    /// Descripción breve de Service1
-    /// </summary>
     [WebService(Namespace = "http://localhost/MobiCarta", Name = "MobiCartaWebServices", 
         Description = "Servicio web que gestiona la información de la aplicación MobiCarta")]
     [WebServiceBinding(ConformsTo = WsiProfiles.BasicProfile1_1)]
     [System.ComponentModel.ToolboxItem(false)]
-    // Para permitir que se llame a este servicio Web desde un script, usando ASP.NET AJAX, quite la marca de comentario de la línea siguiente. 
-    // [System.Web.Script.Services.ScriptService]
     public class Services : System.Web.Services.WebService
     {
         /* Servicios comunes */
@@ -26,7 +21,7 @@ namespace WebServices
             return XmlProcessor.xmlRoomsBuilder(SqlProcessor.selectAllRooms());
         }
 
-        [WebMethod(Description = "Devuelve una cadena en formato XML con la especificación del restaurante actualmente cargado")]
+        [WebMethod(Description = "Devuelve una cadena en formato XML con la especificación de la plantilla de la jornada actual")]
         public string getCurrentRoom()
         {
             string name = SqlProcessor.selectRestaurantRoom();
@@ -68,19 +63,19 @@ namespace WebServices
             return SqlProcessor.selectTable(dni).Id;
         }
 
-        [WebMethod(Description = "Devuelve el histórico de pedidos de un cliente")]
+        [WebMethod(Description = "Devuelve una cadena en formato XML con el histórico de pedidos de un cliente")]
         public string getClientHistory(string client)
         {
             return XmlProcessor.xmlHistoryBuilder(SqlProcessor.selectHistoricalOrders(client));
         }
 
-        [WebMethod(Description = "Devuelve el histórico de pedidos del restaurante")]
+        [WebMethod(Description = "Devuelve una cadena en formato XML con el histórico de pedidos del restaurante")]
         public string getClientsHistory()
         {
             return XmlProcessor.xmlHistoryBuilder(SqlProcessor.selectHistoricalOrders(""));
         }
 
-        [WebMethod(Description = "Resetea de la BD los datos de la jornada anterior (estado de las mesas, pedidos y clientes)")]
+        [WebMethod(Description = "'Resetea' de la BD los datos de la jornada anterior (estado de las mesas, pedidos y clientes)")]
         public void resetJourney(string room)
         {
             SqlProcessor.truncateTables();  // se eliminan las mesas existentes en la BD
@@ -98,7 +93,7 @@ namespace WebServices
             SqlProcessor.resetClientsStatus();  // se cambia el estado de los demás clientes a 0 ('no está en el restaurante')
         }
 
-        [WebMethod(Description = "Resetea todas las tablas de la base de datos de la aplicación")]
+        [WebMethod(Description = "'Resetea' todas las tablas de la base de datos de la aplicación")]
         public void resetDB()
         {
             SqlProcessor.truncateDB();
@@ -118,13 +113,13 @@ namespace WebServices
         }
 
         /* Servicios propios del recibidor */
-        [WebMethod(Description = "Devuelve una cadena en formato XML con la información del cliente con dni 'dni'.")]
+        [WebMethod(Description = "Devuelve una cadena en formato XML con la información del cliente 'dni'")]
         public string getClient(string dni)
         {
             return XmlProcessor.xmlClientDataBuilder(SqlProcessor.selectClient(dni), SqlProcessor.selectAddress(dni));
         }
 
-        [WebMethod(Description = "Devuelve una cadena en formato XML con la lista de clientes del restaurante.")]
+        [WebMethod(Description = "Devuelve una cadena en formato XML con la lista de clientes del restaurante")]
         public string getClients()
         {
             return XmlProcessor.xmlClientsDataBuilder(SqlProcessor.selectClients());
@@ -135,7 +130,7 @@ namespace WebServices
         {
             List<Object> clientData = XmlProcessor.xmlClientDecoder(xmlClient);
             Client client = SqlProcessor.selectClient(((Client)clientData[0]).Dni);
-            if (client.Name == null)
+            if (client.Name == null)    // si el cliente no existe, se crea
             {
                 SqlProcessor.insertClient(new Client(((Client)clientData[0]).Dni, 
                     ((Client)clientData[0]).Name, ((Client)clientData[0]).Surname, 0, 0));  // se almacenan los datos personales
@@ -145,12 +140,12 @@ namespace WebServices
             else return client.Status;
         }
 
-        [WebMethod(Description = "Devuelve una cadena en formato XML con el resultado generado por el sistema recomendador para un cliente")]
+        [WebMethod(Description = "Devuelve una cadena en formato XML con las recomendaciones calculadas por el módulo recomendador para un cliente")]
         public string getRecommendation(string client)
         {
             string restaurant = SqlProcessor.selectRestaurant().Name;
-            List<HOrder> clientHistory = SqlProcessor.selectHistoricalOrders(client);
-            List<Product> products = SqlProcessor.selectAllProducts(false);
+            List<HistoricalOrder> clientHistory = SqlProcessor.selectHistoricalOrders(client);  // selecciona el historial de pedidos del cliente
+            List<Product> products = SqlProcessor.selectAllProducts(false); // selecciona sólo los productos visibles
             int appearances = SqlProcessor.selectClient(client).Appearances;
             double discount = SqlProcessor.selectDiscount();
             int discountedV = SqlProcessor.selectDiscountedVisit();
@@ -158,7 +153,7 @@ namespace WebServices
             return XmlProcessor.xmlRecommendationBuilder(rec);
         }
 
-        [WebMethod(Description = "Devuelve el total de la factura para la mesa 'tableID'")]
+        [WebMethod(Description = "Devuelve el importe total de la factura para la mesa 'tableID'")]
         public double getBillAmount(int tableID)
         {
             getBill(tableID, false);    // Se genera la factura
@@ -233,7 +228,7 @@ namespace WebServices
         }
 
         /* Servicios propios de la barra */
-        [WebMethod(Description = "Genera una nueva lista de productos")]
+        [WebMethod(Description = "Genera una nueva lista de productos a partir de un XML")]
         public void saveProductsList(string xml)
         {
             List<Product> products = XmlProcessor.xmlProductsDecoder(xml);
@@ -273,21 +268,21 @@ namespace WebServices
             return XmlProcessor.xmlTableStatusBuilder(SqlProcessor.selectTable(tableID), SqlProcessor.selectClient(dni), SqlProcessor.selectTableOrders(tableID, true));
         }
 
-        [WebMethod(Description = "Añade un pedido (en formato XML) a la lista de pedidos de la BD")]
+        [WebMethod(Description = "Añade un pedido (en formato XML) a la lista de pedidos de la BD y devuelve una cadena XML con el estado actualizado de las mesas")]
         public string addNewOrder(string xml)
         {
             List<Order> orders = XmlProcessor.xmlOrdersDecoder(xml);
             foreach (Order order in orders)
                 SqlProcessor.insertOrder(order);
-            recalculateTablesStatus();
+            recalculateTablesStatus();  // recalcula el nuevo estado de las mesas del restaurante
             return XmlProcessor.xmlTablesStatusBuilder(SqlProcessor.selectAllTables());
         }
 
-        [WebMethod(Description = "Cambia el estado actual del pedido 'orderID' por el nuevo estado 'status'")]
+        [WebMethod(Description = "Cambia el estado actual del pedido 'orderID' por el nuevo estado 'status' y devuelve una cadena XML con el estado actualizado de las mesas")]
         public string setOrderStatus(int orderID, int status)
         {
             SqlProcessor.updateOrder(orderID, -3, status, -3); // -3 no modifica el argumento
-            recalculateTablesStatus();
+            recalculateTablesStatus();  // recalcula el nuevo estado de las mesas del restaurante
             return XmlProcessor.xmlTablesStatusBuilder(SqlProcessor.selectAllTables());
         }
 
@@ -297,11 +292,11 @@ namespace WebServices
             SqlProcessor.updateOrder(orderID, amount, -3, -3); // -3 no modifica el argumento
         }
 
-        [WebMethod(Description = "Cambia la mesa actual del pedido 'orderID' por la mesa con identificador 'tableID'")]
+        [WebMethod(Description = "Cambia la mesa actual del pedido 'orderID' por la mesa con identificador 'tableID' y devuelve una cadena XML con el estado actualizado de las mesas")]
         public string setOrderTable(int orderID, int tableID)
         {
             SqlProcessor.updateOrder(orderID, -3, -3, tableID); // -3 no modifica el argumento
-            recalculateTablesStatus();
+            recalculateTablesStatus();  // recalcula el nuevo estado de las mesas del restaurante
             return XmlProcessor.xmlTablesStatusBuilder(SqlProcessor.selectAllTables());
         }
 
@@ -329,11 +324,11 @@ namespace WebServices
             return xmlBill; // y devuelve el xml de la factura calculada
         }
 
+        // Actualiza el estado de las mesas del restaurante
         private void recalculateTablesStatus()
         {
             foreach (Table table in SqlProcessor.selectAllTables())
             {
-                //if (table.Status >= 0 && table.Status < 3)
                 if (table.Status >= 0)
                 {
                     List<Order> orders = SqlProcessor.selectTableOrders(table.Id, true);
@@ -357,6 +352,7 @@ namespace WebServices
             }
         }
 
+        // Genera la factura de la mesa 'tableID'
         private Bill generateBill(int tableID)
         {
             Bill bill = new Bill();
@@ -369,7 +365,7 @@ namespace WebServices
             bill.TableID = tableID;
             bill.Iva = SqlProcessor.selectIVA();
             int dVisit = SqlProcessor.selectDiscountedVisit();
-            if (bill.ClientInfo.Appearances % dVisit == 0 && bill.ClientInfo.Appearances > 0)
+            if (bill.ClientInfo.Appearances % dVisit == 0 && bill.ClientInfo.Appearances > 0)   // descuento por fidelidad
                 bill.Discount = SqlProcessor.selectDiscount();
             else bill.Discount = 0.0;
             bill.Id = SqlProcessor.selectNBill();
@@ -382,7 +378,7 @@ namespace WebServices
                 Product product = SqlProcessor.selectProduct(order.Product);
                 oPrice.Order = order;
                 oPrice.Price = product.Price;
-                if (product.DiscountedUnit > 0)
+                if (product.DiscountedUnit > 0) // descuento por producto
                     oPrice.Discount = ((int)(order.Amount / product.DiscountedUnit)) * product.Discount * product.Price;
                 else
                     oPrice.Discount = 0;
