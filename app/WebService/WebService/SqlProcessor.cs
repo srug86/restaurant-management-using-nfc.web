@@ -26,7 +26,7 @@ namespace WebServices
         public static void deleteRoom(string name)
         {
             db.connect();
-            db.setData("DELETE FROM Room WHERE name = '" + name + "'");
+            db.setData("DELETE FROM Rooms WHERE name = '" + name + "'");
             db.disconnect();
         }
 
