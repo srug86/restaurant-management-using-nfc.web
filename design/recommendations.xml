@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE Resultado SYSTEM "Resultado.dtd">
 <Recommendations>
-	<Opening>Bienvenido al restaurante Almagro. Gracias por su visita</Opening>
+	<Opening>Bienvenido al restaurante mobiCarta. Gracias por su visita</Opening>
 	<Products>
 		<Usually>
 			<Category name="Refrescos">
@@ -23,8 +24,8 @@
 			</Product>
 		</Promotional>
 		<Recommended>
-			<Product name="Arroz con leche" category="Postres">
-			<Product name="Fanta de naranja 220ml" category="Refrescos">
+			<Product name="Arroz con leche" category="Postres"/>
+			<Product name="Fanta de naranja 220ml" category="Refrescos"/>
 		</Recommended>
 	</Products>
 </Recommendations>
